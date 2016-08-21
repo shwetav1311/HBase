@@ -1,0 +1,59 @@
+message Column
+{
+	optional string colName=1;
+	optional string colValue=2;
+	optional string colType=3;
+}
+
+message ColumnFamily
+{
+	optional string Name=1;
+	repeated Column columns=2;
+}
+
+message CreateTableRequest
+{
+  	optional string tableName = 1;
+  	repeated ColumnFamily colFamilies=2;   
+}
+
+message CreateTableResponse
+{
+	optional int32 status=1;
+}
+
+//When Region Server/Master receives create request. It will create a file with the table name and store the table metadata (columns) in the file.
+
+message Cell
+{
+	optional string ColumnFamily=1;
+	optional int64 timestamp=3;
+}
+
+message PutRequest
+{
+	optional string TableName=1;
+	optional string rowkey=3;   // Populated by client
+	repeated Cell cells=4;
+}
+
+
+
+message PutResponse
+{
+   optional string Status=1;
+}
+
+
+message GetRequest
+{
+	optional string tableName=1;
+	optional string rowkey=2;
+	optional Cell cell=3;
+}
+
+message GetResponse
+{
+	optional int32 Status=1;
+	repeated Cell cells=2;
+}
