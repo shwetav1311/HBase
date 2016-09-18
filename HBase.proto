@@ -1,10 +1,16 @@
 syntax = "proto2";
 
+message Cell
+{
+	optional string colValue=1;
+	optional int64 timestamp=2;
+}
+
 message Column
 {
 	optional string colName=1;
-	optional string colValue=2;
-	optional string colType=3;//added
+	repeated Cell cells=2;  // Will be empty for getRequest
+		
 }
 
 message ColumnFamily
@@ -13,10 +19,11 @@ message ColumnFamily
 	repeated Column columns=2;
 }
 
+
 message CreateTableRequest
 {
   	optional string tableName = 1;
-  	repeated ColumnFamily colFamilies=2;   
+  	repeated string colFamilies = 2;  //modified
 }
 
 message CreateTableResponse
@@ -26,17 +33,14 @@ message CreateTableResponse
 
 //When Region Server/Master receives create request. It will create a file with the table name and store the table metadata (columns) in the file.
 
-message Cell
-{
-	optional ColumnFamily colFamily=1;
-	optional int64 timestamp=2;
-}
+
 
 message PutRequest
 {
+		
 	optional string TableName=1;
 	optional string rowkey=2;   // Populated by client
-	repeated Cell cells=3;
+	repeated ColumnFamily colFamily=3;
 }
 
 
@@ -57,13 +61,13 @@ message GetRequest
 message GetResponse
 {
 	optional int32 Status=1;
-	repeated Cell cells=2;
+	repeated ColumnFamily colFamily=2;
 }
 
 message Row
 {
 	optional int32 rowID = 1; // else our rabdi will cry :D and her instinct thingy
-	repeated Cell cells=2; 
+	repeated ColumnFamily colFamily=2;
 }
 
 message IndexEntry
