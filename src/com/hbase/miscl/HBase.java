@@ -2911,25 +2911,24 @@ public final class HBase {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string ColumnFamily = 1;</code>
+     * <code>optional .ColumnFamily colFamily = 1;</code>
      */
-    boolean hasColumnFamily();
+    boolean hasColFamily();
     /**
-     * <code>optional string ColumnFamily = 1;</code>
+     * <code>optional .ColumnFamily colFamily = 1;</code>
      */
-    java.lang.String getColumnFamily();
+    HBase.ColumnFamily getColFamily();
     /**
-     * <code>optional string ColumnFamily = 1;</code>
+     * <code>optional .ColumnFamily colFamily = 1;</code>
      */
-    com.google.protobuf.ByteString
-        getColumnFamilyBytes();
+    HBase.ColumnFamilyOrBuilder getColFamilyOrBuilder();
 
     /**
-     * <code>optional int64 timestamp = 3;</code>
+     * <code>optional int64 timestamp = 2;</code>
      */
     boolean hasTimestamp();
     /**
-     * <code>optional int64 timestamp = 3;</code>
+     * <code>optional int64 timestamp = 2;</code>
      */
     long getTimestamp();
   }
@@ -2945,7 +2944,6 @@ public final class HBase {
       super(builder);
     }
     private Cell() {
-      columnFamily_ = "";
       timestamp_ = 0L;
     }
 
@@ -2977,12 +2975,19 @@ public final class HBase {
               break;
             }
             case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
+              HBase.ColumnFamily.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000001) == 0x00000001)) {
+                subBuilder = colFamily_.toBuilder();
+              }
+              colFamily_ = input.readMessage(HBase.ColumnFamily.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(colFamily_);
+                colFamily_ = subBuilder.buildPartial();
+              }
               bitField0_ |= 0x00000001;
-              columnFamily_ = bs;
               break;
             }
-            case 24: {
+            case 16: {
               bitField0_ |= 0x00000002;
               timestamp_ = input.readInt64();
               break;
@@ -3013,58 +3018,37 @@ public final class HBase {
     }
 
     private int bitField0_;
-    public static final int COLUMNFAMILY_FIELD_NUMBER = 1;
-    private volatile java.lang.Object columnFamily_;
+    public static final int COLFAMILY_FIELD_NUMBER = 1;
+    private HBase.ColumnFamily colFamily_;
     /**
-     * <code>optional string ColumnFamily = 1;</code>
+     * <code>optional .ColumnFamily colFamily = 1;</code>
      */
-    public boolean hasColumnFamily() {
+    public boolean hasColFamily() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string ColumnFamily = 1;</code>
+     * <code>optional .ColumnFamily colFamily = 1;</code>
      */
-    public java.lang.String getColumnFamily() {
-      java.lang.Object ref = columnFamily_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          columnFamily_ = s;
-        }
-        return s;
-      }
+    public HBase.ColumnFamily getColFamily() {
+      return colFamily_ == null ? HBase.ColumnFamily.getDefaultInstance() : colFamily_;
     }
     /**
-     * <code>optional string ColumnFamily = 1;</code>
+     * <code>optional .ColumnFamily colFamily = 1;</code>
      */
-    public com.google.protobuf.ByteString
-        getColumnFamilyBytes() {
-      java.lang.Object ref = columnFamily_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        columnFamily_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public HBase.ColumnFamilyOrBuilder getColFamilyOrBuilder() {
+      return colFamily_ == null ? HBase.ColumnFamily.getDefaultInstance() : colFamily_;
     }
 
-    public static final int TIMESTAMP_FIELD_NUMBER = 3;
+    public static final int TIMESTAMP_FIELD_NUMBER = 2;
     private long timestamp_;
     /**
-     * <code>optional int64 timestamp = 3;</code>
+     * <code>optional int64 timestamp = 2;</code>
      */
     public boolean hasTimestamp() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 timestamp = 3;</code>
+     * <code>optional int64 timestamp = 2;</code>
      */
     public long getTimestamp() {
       return timestamp_;
@@ -3083,10 +3067,10 @@ public final class HBase {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, columnFamily_);
+        output.writeMessage(1, getColFamily());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt64(3, timestamp_);
+        output.writeInt64(2, timestamp_);
       }
       unknownFields.writeTo(output);
     }
@@ -3097,11 +3081,12 @@ public final class HBase {
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, columnFamily_);
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getColFamily());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, timestamp_);
+          .computeInt64Size(2, timestamp_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -3211,11 +3196,16 @@ public final class HBase {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getColFamilyFieldBuilder();
         }
       }
       public Builder clear() {
         super.clear();
-        columnFamily_ = "";
+        if (colFamilyBuilder_ == null) {
+          colFamily_ = null;
+        } else {
+          colFamilyBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000001);
         timestamp_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -3246,7 +3236,11 @@ public final class HBase {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.columnFamily_ = columnFamily_;
+        if (colFamilyBuilder_ == null) {
+          result.colFamily_ = colFamily_;
+        } else {
+          result.colFamily_ = colFamilyBuilder_.build();
+        }
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
@@ -3267,10 +3261,8 @@ public final class HBase {
 
       public Builder mergeFrom(HBase.Cell other) {
         if (other == HBase.Cell.getDefaultInstance()) return this;
-        if (other.hasColumnFamily()) {
-          bitField0_ |= 0x00000001;
-          columnFamily_ = other.columnFamily_;
-          onChanged();
+        if (other.hasColFamily()) {
+          mergeColFamily(other.getColFamily());
         }
         if (other.hasTimestamp()) {
           setTimestamp(other.getTimestamp());
@@ -3303,97 +3295,139 @@ public final class HBase {
       }
       private int bitField0_;
 
-      private java.lang.Object columnFamily_ = "";
+      private HBase.ColumnFamily colFamily_ = null;
+      private com.google.protobuf.SingleFieldBuilder<
+          HBase.ColumnFamily, HBase.ColumnFamily.Builder, HBase.ColumnFamilyOrBuilder> colFamilyBuilder_;
       /**
-       * <code>optional string ColumnFamily = 1;</code>
+       * <code>optional .ColumnFamily colFamily = 1;</code>
        */
-      public boolean hasColumnFamily() {
+      public boolean hasColFamily() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional string ColumnFamily = 1;</code>
+       * <code>optional .ColumnFamily colFamily = 1;</code>
        */
-      public java.lang.String getColumnFamily() {
-        java.lang.Object ref = columnFamily_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            columnFamily_ = s;
+      public HBase.ColumnFamily getColFamily() {
+        if (colFamilyBuilder_ == null) {
+          return colFamily_ == null ? HBase.ColumnFamily.getDefaultInstance() : colFamily_;
+        } else {
+          return colFamilyBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .ColumnFamily colFamily = 1;</code>
+       */
+      public Builder setColFamily(HBase.ColumnFamily value) {
+        if (colFamilyBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
           }
-          return s;
+          colFamily_ = value;
+          onChanged();
         } else {
-          return (java.lang.String) ref;
+          colFamilyBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>optional string ColumnFamily = 1;</code>
-       */
-      public com.google.protobuf.ByteString
-          getColumnFamilyBytes() {
-        java.lang.Object ref = columnFamily_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          columnFamily_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string ColumnFamily = 1;</code>
-       */
-      public Builder setColumnFamily(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        columnFamily_ = value;
-        onChanged();
+        bitField0_ |= 0x00000001;
         return this;
       }
       /**
-       * <code>optional string ColumnFamily = 1;</code>
+       * <code>optional .ColumnFamily colFamily = 1;</code>
        */
-      public Builder clearColumnFamily() {
+      public Builder setColFamily(
+          HBase.ColumnFamily.Builder builderForValue) {
+        if (colFamilyBuilder_ == null) {
+          colFamily_ = builderForValue.build();
+          onChanged();
+        } else {
+          colFamilyBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>optional .ColumnFamily colFamily = 1;</code>
+       */
+      public Builder mergeColFamily(HBase.ColumnFamily value) {
+        if (colFamilyBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001) &&
+              colFamily_ != null &&
+              colFamily_ != HBase.ColumnFamily.getDefaultInstance()) {
+            colFamily_ =
+              HBase.ColumnFamily.newBuilder(colFamily_).mergeFrom(value).buildPartial();
+          } else {
+            colFamily_ = value;
+          }
+          onChanged();
+        } else {
+          colFamilyBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>optional .ColumnFamily colFamily = 1;</code>
+       */
+      public Builder clearColFamily() {
+        if (colFamilyBuilder_ == null) {
+          colFamily_ = null;
+          onChanged();
+        } else {
+          colFamilyBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000001);
-        columnFamily_ = getDefaultInstance().getColumnFamily();
-        onChanged();
         return this;
       }
       /**
-       * <code>optional string ColumnFamily = 1;</code>
+       * <code>optional .ColumnFamily colFamily = 1;</code>
        */
-      public Builder setColumnFamilyBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        columnFamily_ = value;
+      public HBase.ColumnFamily.Builder getColFamilyBuilder() {
+        bitField0_ |= 0x00000001;
         onChanged();
-        return this;
+        return getColFamilyFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .ColumnFamily colFamily = 1;</code>
+       */
+      public HBase.ColumnFamilyOrBuilder getColFamilyOrBuilder() {
+        if (colFamilyBuilder_ != null) {
+          return colFamilyBuilder_.getMessageOrBuilder();
+        } else {
+          return colFamily_ == null ?
+              HBase.ColumnFamily.getDefaultInstance() : colFamily_;
+        }
+      }
+      /**
+       * <code>optional .ColumnFamily colFamily = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          HBase.ColumnFamily, HBase.ColumnFamily.Builder, HBase.ColumnFamilyOrBuilder> 
+          getColFamilyFieldBuilder() {
+        if (colFamilyBuilder_ == null) {
+          colFamilyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              HBase.ColumnFamily, HBase.ColumnFamily.Builder, HBase.ColumnFamilyOrBuilder>(
+                  getColFamily(),
+                  getParentForChildren(),
+                  isClean());
+          colFamily_ = null;
+        }
+        return colFamilyBuilder_;
       }
 
       private long timestamp_ ;
       /**
-       * <code>optional int64 timestamp = 3;</code>
+       * <code>optional int64 timestamp = 2;</code>
        */
       public boolean hasTimestamp() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 timestamp = 3;</code>
+       * <code>optional int64 timestamp = 2;</code>
        */
       public long getTimestamp() {
         return timestamp_;
       }
       /**
-       * <code>optional int64 timestamp = 3;</code>
+       * <code>optional int64 timestamp = 2;</code>
        */
       public Builder setTimestamp(long value) {
         bitField0_ |= 0x00000002;
@@ -3402,7 +3436,7 @@ public final class HBase {
         return this;
       }
       /**
-       * <code>optional int64 timestamp = 3;</code>
+       * <code>optional int64 timestamp = 2;</code>
        */
       public Builder clearTimestamp() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -4501,18 +4535,13 @@ public final class HBase {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string Status = 1;</code>
+     * <code>optional int32 Status = 1;</code>
      */
     boolean hasStatus();
     /**
-     * <code>optional string Status = 1;</code>
+     * <code>optional int32 Status = 1;</code>
      */
-    java.lang.String getStatus();
-    /**
-     * <code>optional string Status = 1;</code>
-     */
-    com.google.protobuf.ByteString
-        getStatusBytes();
+    int getStatus();
   }
   /**
    * Protobuf type {@code PutResponse}
@@ -4526,7 +4555,7 @@ public final class HBase {
       super(builder);
     }
     private PutResponse() {
-      status_ = "";
+      status_ = 0;
     }
 
     @java.lang.Override
@@ -4556,10 +4585,9 @@ public final class HBase {
               }
               break;
             }
-            case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
+            case 8: {
               bitField0_ |= 0x00000001;
-              status_ = bs;
+              status_ = input.readInt32();
               break;
             }
           }
@@ -4589,45 +4617,18 @@ public final class HBase {
 
     private int bitField0_;
     public static final int STATUS_FIELD_NUMBER = 1;
-    private volatile java.lang.Object status_;
+    private int status_;
     /**
-     * <code>optional string Status = 1;</code>
+     * <code>optional int32 Status = 1;</code>
      */
     public boolean hasStatus() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string Status = 1;</code>
+     * <code>optional int32 Status = 1;</code>
      */
-    public java.lang.String getStatus() {
-      java.lang.Object ref = status_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          status_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string Status = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getStatusBytes() {
-      java.lang.Object ref = status_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        status_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public int getStatus() {
+      return status_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -4643,7 +4644,7 @@ public final class HBase {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, status_);
+        output.writeInt32(1, status_);
       }
       unknownFields.writeTo(output);
     }
@@ -4654,7 +4655,8 @@ public final class HBase {
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, status_);
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, status_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -4768,7 +4770,7 @@ public final class HBase {
       }
       public Builder clear() {
         super.clear();
-        status_ = "";
+        status_ = 0;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
@@ -4815,9 +4817,7 @@ public final class HBase {
       public Builder mergeFrom(HBase.PutResponse other) {
         if (other == HBase.PutResponse.getDefaultInstance()) return this;
         if (other.hasStatus()) {
-          bitField0_ |= 0x00000001;
-          status_ = other.status_;
-          onChanged();
+          setStatus(other.getStatus());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -4847,78 +4847,34 @@ public final class HBase {
       }
       private int bitField0_;
 
-      private java.lang.Object status_ = "";
+      private int status_ ;
       /**
-       * <code>optional string Status = 1;</code>
+       * <code>optional int32 Status = 1;</code>
        */
       public boolean hasStatus() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional string Status = 1;</code>
+       * <code>optional int32 Status = 1;</code>
        */
-      public java.lang.String getStatus() {
-        java.lang.Object ref = status_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            status_ = s;
-          }
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
+      public int getStatus() {
+        return status_;
       }
       /**
-       * <code>optional string Status = 1;</code>
+       * <code>optional int32 Status = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getStatusBytes() {
-        java.lang.Object ref = status_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          status_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string Status = 1;</code>
-       */
-      public Builder setStatus(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
+      public Builder setStatus(int value) {
+        bitField0_ |= 0x00000001;
         status_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string Status = 1;</code>
+       * <code>optional int32 Status = 1;</code>
        */
       public Builder clearStatus() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        status_ = getDefaultInstance().getStatus();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string Status = 1;</code>
-       */
-      public Builder setStatusBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        status_ = value;
+        status_ = 0;
         onChanged();
         return this;
       }
@@ -5003,17 +4959,28 @@ public final class HBase {
         getRowkeyBytes();
 
     /**
-     * <code>optional .Cell cell = 3;</code>
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
      */
-    boolean hasCell();
+    java.util.List<HBase.ColumnFamily> 
+        getColFamilyList();
     /**
-     * <code>optional .Cell cell = 3;</code>
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
      */
-    HBase.Cell getCell();
+    HBase.ColumnFamily getColFamily(int index);
     /**
-     * <code>optional .Cell cell = 3;</code>
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
      */
-    HBase.CellOrBuilder getCellOrBuilder();
+    int getColFamilyCount();
+    /**
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
+     */
+    java.util.List<? extends HBase.ColumnFamilyOrBuilder> 
+        getColFamilyOrBuilderList();
+    /**
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
+     */
+    HBase.ColumnFamilyOrBuilder getColFamilyOrBuilder(
+        int index);
   }
   /**
    * Protobuf type {@code GetRequest}
@@ -5029,6 +4996,7 @@ public final class HBase {
     private GetRequest() {
       tableName_ = "";
       rowkey_ = "";
+      colFamily_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -5071,16 +5039,11 @@ public final class HBase {
               break;
             }
             case 26: {
-              HBase.Cell.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000004) == 0x00000004)) {
-                subBuilder = cell_.toBuilder();
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                colFamily_ = new java.util.ArrayList<HBase.ColumnFamily>();
+                mutable_bitField0_ |= 0x00000004;
               }
-              cell_ = input.readMessage(HBase.Cell.parser(), extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(cell_);
-                cell_ = subBuilder.buildPartial();
-              }
-              bitField0_ |= 0x00000004;
+              colFamily_.add(input.readMessage(HBase.ColumnFamily.parser(), extensionRegistry));
               break;
             }
           }
@@ -5092,6 +5055,9 @@ public final class HBase {
             new com.google.protobuf.InvalidProtocolBufferException(
                 e.getMessage()).setUnfinishedMessage(this));
       } finally {
+        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+          colFamily_ = java.util.Collections.unmodifiableList(colFamily_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -5193,25 +5159,39 @@ public final class HBase {
       }
     }
 
-    public static final int CELL_FIELD_NUMBER = 3;
-    private HBase.Cell cell_;
+    public static final int COLFAMILY_FIELD_NUMBER = 3;
+    private java.util.List<HBase.ColumnFamily> colFamily_;
     /**
-     * <code>optional .Cell cell = 3;</code>
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
      */
-    public boolean hasCell() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+    public java.util.List<HBase.ColumnFamily> getColFamilyList() {
+      return colFamily_;
     }
     /**
-     * <code>optional .Cell cell = 3;</code>
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
      */
-    public HBase.Cell getCell() {
-      return cell_ == null ? HBase.Cell.getDefaultInstance() : cell_;
+    public java.util.List<? extends HBase.ColumnFamilyOrBuilder> 
+        getColFamilyOrBuilderList() {
+      return colFamily_;
     }
     /**
-     * <code>optional .Cell cell = 3;</code>
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
      */
-    public HBase.CellOrBuilder getCellOrBuilder() {
-      return cell_ == null ? HBase.Cell.getDefaultInstance() : cell_;
+    public int getColFamilyCount() {
+      return colFamily_.size();
+    }
+    /**
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
+     */
+    public HBase.ColumnFamily getColFamily(int index) {
+      return colFamily_.get(index);
+    }
+    /**
+     * <code>repeated .ColumnFamily colFamily = 3;</code>
+     */
+    public HBase.ColumnFamilyOrBuilder getColFamilyOrBuilder(
+        int index) {
+      return colFamily_.get(index);
     }
 
     private byte memoizedIsInitialized = -1;
@@ -5232,8 +5212,8 @@ public final class HBase {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, rowkey_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeMessage(3, getCell());
+      for (int i = 0; i < colFamily_.size(); i++) {
+        output.writeMessage(3, colFamily_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -5249,9 +5229,9 @@ public final class HBase {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, rowkey_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      for (int i = 0; i < colFamily_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getCell());
+          .computeMessageSize(3, colFamily_.get(i));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -5361,7 +5341,7 @@ public final class HBase {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-          getCellFieldBuilder();
+          getColFamilyFieldBuilder();
         }
       }
       public Builder clear() {
@@ -5370,12 +5350,12 @@ public final class HBase {
         bitField0_ = (bitField0_ & ~0x00000001);
         rowkey_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
-        if (cellBuilder_ == null) {
-          cell_ = null;
+        if (colFamilyBuilder_ == null) {
+          colFamily_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
         } else {
-          cellBuilder_.clear();
+          colFamilyBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -5408,13 +5388,14 @@ public final class HBase {
           to_bitField0_ |= 0x00000002;
         }
         result.rowkey_ = rowkey_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        if (cellBuilder_ == null) {
-          result.cell_ = cell_;
+        if (colFamilyBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            colFamily_ = java.util.Collections.unmodifiableList(colFamily_);
+            bitField0_ = (bitField0_ & ~0x00000004);
+          }
+          result.colFamily_ = colFamily_;
         } else {
-          result.cell_ = cellBuilder_.build();
+          result.colFamily_ = colFamilyBuilder_.build();
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -5442,8 +5423,31 @@ public final class HBase {
           rowkey_ = other.rowkey_;
           onChanged();
         }
-        if (other.hasCell()) {
-          mergeCell(other.getCell());
+        if (colFamilyBuilder_ == null) {
+          if (!other.colFamily_.isEmpty()) {
+            if (colFamily_.isEmpty()) {
+              colFamily_ = other.colFamily_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+            } else {
+              ensureColFamilyIsMutable();
+              colFamily_.addAll(other.colFamily_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.colFamily_.isEmpty()) {
+            if (colFamilyBuilder_.isEmpty()) {
+              colFamilyBuilder_.dispose();
+              colFamilyBuilder_ = null;
+              colFamily_ = other.colFamily_;
+              bitField0_ = (bitField0_ & ~0x00000004);
+              colFamilyBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getColFamilyFieldBuilder() : null;
+            } else {
+              colFamilyBuilder_.addAllMessages(other.colFamily_);
+            }
+          }
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -5625,122 +5629,244 @@ public final class HBase {
         return this;
       }
 
-      private HBase.Cell cell_ = null;
-      private com.google.protobuf.SingleFieldBuilder<
-          HBase.Cell, HBase.Cell.Builder, HBase.CellOrBuilder> cellBuilder_;
-      /**
-       * <code>optional .Cell cell = 3;</code>
-       */
-      public boolean hasCell() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+      private java.util.List<HBase.ColumnFamily> colFamily_ =
+        java.util.Collections.emptyList();
+      private void ensureColFamilyIsMutable() {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+          colFamily_ = new java.util.ArrayList<HBase.ColumnFamily>(colFamily_);
+          bitField0_ |= 0x00000004;
+         }
       }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          HBase.ColumnFamily, HBase.ColumnFamily.Builder, HBase.ColumnFamilyOrBuilder> colFamilyBuilder_;
+
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      public HBase.Cell getCell() {
-        if (cellBuilder_ == null) {
-          return cell_ == null ? HBase.Cell.getDefaultInstance() : cell_;
+      public java.util.List<HBase.ColumnFamily> getColFamilyList() {
+        if (colFamilyBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(colFamily_);
         } else {
-          return cellBuilder_.getMessage();
+          return colFamilyBuilder_.getMessageList();
         }
       }
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      public Builder setCell(HBase.Cell value) {
-        if (cellBuilder_ == null) {
+      public int getColFamilyCount() {
+        if (colFamilyBuilder_ == null) {
+          return colFamily_.size();
+        } else {
+          return colFamilyBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public HBase.ColumnFamily getColFamily(int index) {
+        if (colFamilyBuilder_ == null) {
+          return colFamily_.get(index);
+        } else {
+          return colFamilyBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public Builder setColFamily(
+          int index, HBase.ColumnFamily value) {
+        if (colFamilyBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          cell_ = value;
+          ensureColFamilyIsMutable();
+          colFamily_.set(index, value);
           onChanged();
         } else {
-          cellBuilder_.setMessage(value);
+          colFamilyBuilder_.setMessage(index, value);
         }
-        bitField0_ |= 0x00000004;
         return this;
       }
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      public Builder setCell(
-          HBase.Cell.Builder builderForValue) {
-        if (cellBuilder_ == null) {
-          cell_ = builderForValue.build();
+      public Builder setColFamily(
+          int index, HBase.ColumnFamily.Builder builderForValue) {
+        if (colFamilyBuilder_ == null) {
+          ensureColFamilyIsMutable();
+          colFamily_.set(index, builderForValue.build());
           onChanged();
         } else {
-          cellBuilder_.setMessage(builderForValue.build());
+          colFamilyBuilder_.setMessage(index, builderForValue.build());
         }
-        bitField0_ |= 0x00000004;
         return this;
       }
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      public Builder mergeCell(HBase.Cell value) {
-        if (cellBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) == 0x00000004) &&
-              cell_ != null &&
-              cell_ != HBase.Cell.getDefaultInstance()) {
-            cell_ =
-              HBase.Cell.newBuilder(cell_).mergeFrom(value).buildPartial();
-          } else {
-            cell_ = value;
+      public Builder addColFamily(HBase.ColumnFamily value) {
+        if (colFamilyBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
           }
+          ensureColFamilyIsMutable();
+          colFamily_.add(value);
           onChanged();
         } else {
-          cellBuilder_.mergeFrom(value);
+          colFamilyBuilder_.addMessage(value);
         }
-        bitField0_ |= 0x00000004;
         return this;
       }
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      public Builder clearCell() {
-        if (cellBuilder_ == null) {
-          cell_ = null;
+      public Builder addColFamily(
+          int index, HBase.ColumnFamily value) {
+        if (colFamilyBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureColFamilyIsMutable();
+          colFamily_.add(index, value);
           onChanged();
         } else {
-          cellBuilder_.clear();
+          colFamilyBuilder_.addMessage(index, value);
         }
-        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      public HBase.Cell.Builder getCellBuilder() {
-        bitField0_ |= 0x00000004;
-        onChanged();
-        return getCellFieldBuilder().getBuilder();
+      public Builder addColFamily(
+          HBase.ColumnFamily.Builder builderForValue) {
+        if (colFamilyBuilder_ == null) {
+          ensureColFamilyIsMutable();
+          colFamily_.add(builderForValue.build());
+          onChanged();
+        } else {
+          colFamilyBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
       }
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      public HBase.CellOrBuilder getCellOrBuilder() {
-        if (cellBuilder_ != null) {
-          return cellBuilder_.getMessageOrBuilder();
+      public Builder addColFamily(
+          int index, HBase.ColumnFamily.Builder builderForValue) {
+        if (colFamilyBuilder_ == null) {
+          ensureColFamilyIsMutable();
+          colFamily_.add(index, builderForValue.build());
+          onChanged();
         } else {
-          return cell_ == null ?
-              HBase.Cell.getDefaultInstance() : cell_;
+          colFamilyBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public Builder addAllColFamily(
+          java.lang.Iterable<? extends HBase.ColumnFamily> values) {
+        if (colFamilyBuilder_ == null) {
+          ensureColFamilyIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, colFamily_);
+          onChanged();
+        } else {
+          colFamilyBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public Builder clearColFamily() {
+        if (colFamilyBuilder_ == null) {
+          colFamily_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000004);
+          onChanged();
+        } else {
+          colFamilyBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public Builder removeColFamily(int index) {
+        if (colFamilyBuilder_ == null) {
+          ensureColFamilyIsMutable();
+          colFamily_.remove(index);
+          onChanged();
+        } else {
+          colFamilyBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public HBase.ColumnFamily.Builder getColFamilyBuilder(
+          int index) {
+        return getColFamilyFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public HBase.ColumnFamilyOrBuilder getColFamilyOrBuilder(
+          int index) {
+        if (colFamilyBuilder_ == null) {
+          return colFamily_.get(index);  } else {
+          return colFamilyBuilder_.getMessageOrBuilder(index);
         }
       }
       /**
-       * <code>optional .Cell cell = 3;</code>
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
        */
-      private com.google.protobuf.SingleFieldBuilder<
-          HBase.Cell, HBase.Cell.Builder, HBase.CellOrBuilder> 
-          getCellFieldBuilder() {
-        if (cellBuilder_ == null) {
-          cellBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              HBase.Cell, HBase.Cell.Builder, HBase.CellOrBuilder>(
-                  getCell(),
+      public java.util.List<? extends HBase.ColumnFamilyOrBuilder> 
+           getColFamilyOrBuilderList() {
+        if (colFamilyBuilder_ != null) {
+          return colFamilyBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(colFamily_);
+        }
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public HBase.ColumnFamily.Builder addColFamilyBuilder() {
+        return getColFamilyFieldBuilder().addBuilder(
+            HBase.ColumnFamily.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public HBase.ColumnFamily.Builder addColFamilyBuilder(
+          int index) {
+        return getColFamilyFieldBuilder().addBuilder(
+            index, HBase.ColumnFamily.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .ColumnFamily colFamily = 3;</code>
+       */
+      public java.util.List<HBase.ColumnFamily.Builder> 
+           getColFamilyBuilderList() {
+        return getColFamilyFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          HBase.ColumnFamily, HBase.ColumnFamily.Builder, HBase.ColumnFamilyOrBuilder> 
+          getColFamilyFieldBuilder() {
+        if (colFamilyBuilder_ == null) {
+          colFamilyBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              HBase.ColumnFamily, HBase.ColumnFamily.Builder, HBase.ColumnFamilyOrBuilder>(
+                  colFamily_,
+                  ((bitField0_ & 0x00000004) == 0x00000004),
                   getParentForChildren(),
                   isClean());
-          cell_ = null;
+          colFamily_ = null;
         }
-        return cellBuilder_;
+        return colFamilyBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:GetRequest)
@@ -8716,17 +8842,17 @@ public final class HBase {
       "(\0132\007.Column\"K\n\022CreateTableRequest\022\021\n\ttab" +
       "leName\030\001 \001(\t\022\"\n\013colFamilies\030\002 \003(\0132\r.Colu" +
       "mnFamily\"%\n\023CreateTableResponse\022\016\n\006statu" +
-      "s\030\001 \001(\005\"/\n\004Cell\022\024\n\014ColumnFamily\030\001 \001(\t\022\021\n" +
-      "\ttimestamp\030\003 \001(\003\"E\n\nPutRequest\022\021\n\tTableN" +
-      "ame\030\001 \001(\t\022\016\n\006rowkey\030\002 \001(\t\022\024\n\005cells\030\003 \003(\013" +
-      "2\005.Cell\"\035\n\013PutResponse\022\016\n\006Status\030\001 \001(\t\"D",
-      "\n\nGetRequest\022\021\n\ttableName\030\001 \001(\t\022\016\n\006rowke" +
-      "y\030\002 \001(\t\022\023\n\004cell\030\003 \001(\0132\005.Cell\"3\n\013GetRespo" +
-      "nse\022\016\n\006Status\030\001 \001(\005\022\024\n\005cells\030\002 \003(\0132\005.Cel" +
-      "l\"*\n\003Row\022\r\n\005rowID\030\001 \001(\005\022\024\n\005cells\030\002 \003(\0132\005" +
-      ".Cell\".\n\nIndexEntry\022\r\n\005rowID\030\001 \001(\t\022\021\n\tst" +
-      "artByte\030\002 \001(\005\"\'\n\tIndexList\022\032\n\005index\030\001 \003(" +
-      "\0132\013.IndexEntry"
+      "s\030\001 \001(\005\";\n\004Cell\022 \n\tcolFamily\030\001 \001(\0132\r.Col" +
+      "umnFamily\022\021\n\ttimestamp\030\002 \001(\003\"E\n\nPutReque" +
+      "st\022\021\n\tTableName\030\001 \001(\t\022\016\n\006rowkey\030\002 \001(\t\022\024\n" +
+      "\005cells\030\003 \003(\0132\005.Cell\"\035\n\013PutResponse\022\016\n\006St",
+      "atus\030\001 \001(\005\"Q\n\nGetRequest\022\021\n\ttableName\030\001 " +
+      "\001(\t\022\016\n\006rowkey\030\002 \001(\t\022 \n\tcolFamily\030\003 \003(\0132\r" +
+      ".ColumnFamily\"3\n\013GetResponse\022\016\n\006Status\030\001" +
+      " \001(\005\022\024\n\005cells\030\002 \003(\0132\005.Cell\"*\n\003Row\022\r\n\005row" +
+      "ID\030\001 \001(\005\022\024\n\005cells\030\002 \003(\0132\005.Cell\".\n\nIndexE" +
+      "ntry\022\r\n\005rowID\030\001 \001(\t\022\021\n\tstartByte\030\002 \001(\005\"\'" +
+      "\n\tIndexList\022\032\n\005index\030\001 \003(\0132\013.IndexEntry"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -8769,7 +8895,7 @@ public final class HBase {
     internal_static_Cell_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_Cell_descriptor,
-        new java.lang.String[] { "ColumnFamily", "Timestamp", });
+        new java.lang.String[] { "ColFamily", "Timestamp", });
     internal_static_PutRequest_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_PutRequest_fieldAccessorTable = new
@@ -8787,7 +8913,7 @@ public final class HBase {
     internal_static_GetRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_GetRequest_descriptor,
-        new java.lang.String[] { "TableName", "Rowkey", "Cell", });
+        new java.lang.String[] { "TableName", "Rowkey", "ColFamily", });
     internal_static_GetResponse_descriptor =
       getDescriptor().getMessageTypes().get(8);
     internal_static_GetResponse_fieldAccessorTable = new
