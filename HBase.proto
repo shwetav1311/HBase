@@ -9,7 +9,7 @@ message Cell
 message Column
 {
 	optional string colName=1;
-	repeated Cell cells=2;  // Will be empty for getRequest
+	optional Cell cells=2;  // Will be empty for getRequest
 		
 }
 
