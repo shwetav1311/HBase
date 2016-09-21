@@ -29,12 +29,14 @@ import com.hdfs.namenode.INameNode;
 
 public class PutFile implements Runnable {
 
-	public String fileName;
+	public static String fileName;
 	public long FILESIZE;
 	public FileInputStream fis;
 	public String threadName;
 	private Thread t;
-
+	
+	public int status;
+	
 	public PutFile(String threadNameArgs,String fileNameArgs) {
 		super();
 		threadName = threadNameArgs;
@@ -47,15 +49,22 @@ public class PutFile implements Runnable {
 		openFilePut(); //PUT to HDFS
 	}
 
+	public int getPutStatus() {
+		
+		return status;
+	}
+	
 	private void openFilePut() {
 		// TODO Auto-generated method stub
 		
 		int fileHandle;
+		this.status=Constants.STATUS_SUCCESS;
 		byte[] responseArray;
 		
 		OpenFileRequest.Builder openFileReqObj = OpenFileRequest.newBuilder();
 		openFileReqObj.setFileName(fileName);
 		openFileReqObj.setForRead(false);		
+
 		
 		try 
 		{			
@@ -73,18 +82,20 @@ public class PutFile implements Runnable {
 					OpenFileResponse responseObj = OpenFileResponse.parseFrom(responseArray);
 					
 					fileHandle = responseObj.getHandle();
-//					System.out.println("The file handle is "+fileHandle);
+					System.out.println("The file handle is "+fileHandle);
 					
 					status = responseObj.getStatus();
 					if(status==Constants.STATUS_FAILED )//status failed change it
 					{
 						System.out.println("Fatal Error!");
-						System.exit(0);
+						this.status=status;
+						return;
 					}
 					else if(status==Constants.STATUS_NOT_FOUND)
 					{
-						System.out.println("Duplicate File "+fileName);
-						System.exit(0);
+						System.out.println("Duplicate File");
+						this.status=status;
+						return;
 					}
 					
 					AssignBlockRequest.Builder assgnBlockReqObj = AssignBlockRequest.newBuilder(); 
@@ -130,13 +141,14 @@ public class PutFile implements Runnable {
 						if(status==Constants.STATUS_FAILED)
 						{
 							System.out.println("Fatal Error!");
-							System.exit(0);
+							status=Constants.STATUS_FAILED;
+							return;
 						}
 						
 						blkLocation = assignResponseObj.getNewBlock();
 						
 						String blockNumber = blkLocation.getBlockNumber();
-//						System.out.println("Block number retured is "+blockNumber);
+						System.out.println("Block number retured is "+blockNumber);
 						
 						dataNodeLocations = blkLocation.getLocationsList();
 						
@@ -146,14 +158,14 @@ public class PutFile implements Runnable {
 						
 						Registry registry2=LocateRegistry.getRegistry(dataNode.getIp(),dataNode.getPort());
 
-						System.out.println("PutFile Datanodes : " + dataNode);
+						System.out.println(dataNode);
 						IDataNode dataStub = (IDataNode) registry2.lookup(Constants.DATA_NODE_ID);
 //						dataStub.readBlock(null);
 						
 //						System.out.println("Control enters here");
 						/**read 32MB from file, send it as bytes, this fills in the byteArray**/
 						
-						byte[] byteArray = read32MBfromFile(offset,fileName);
+						byte[] byteArray = read32MBfromFile(offset);
 						offset=offset+(int)Constants.BLOCK_SIZE;
 						
 						writeBlockObj.addData(ByteString.copyFrom(byteArray));
@@ -165,13 +177,17 @@ public class PutFile implements Runnable {
 					
 					CloseFileRequest.Builder closeFileObj = CloseFileRequest.newBuilder();
 					closeFileObj.setHandle(fileHandle);
+					closeFileObj.setDecision(Constants.STATUS_NOT_FOUND);
 					
 					byte[] receivedArray = nameStub.closeFile(closeFileObj.build().toByteArray());
 					CloseFileResponse closeResObj = CloseFileResponse.parseFrom(receivedArray);
 					if(closeResObj.getStatus()==Constants.STATUS_FAILED)
 					{
 						System.out.println("Close File response Status Failed");
-						System.exit(0);
+						
+						status=Constants.STATUS_FAILED;
+						return;
+						
 					}
 					
 					try {
@@ -187,21 +203,27 @@ public class PutFile implements Runnable {
 					// TODO Auto-generated catch block
 					System.out.println("Could not find NameNode");
 					e.printStackTrace();
+					status=Constants.STATUS_FAILED;
+					return;
 				}
 				
 			
 		}catch (RemoteException e) {
 			// TODO Auto-generated catch block
 				e.printStackTrace();
+				status=Constants.STATUS_FAILED;
+				return;
 		}		
 		
+		
 	}
+	
 
 	/**Read 32MB size of data from the provided input file **/
-	public byte[] read32MBfromFile(int offset,String fileName)
+	public byte[] read32MBfromFile(int offset)
 	{
 		
-//		System.out.println("offset is "+offset);
+		System.out.println("offset is "+offset);
 
 		
 		BufferedReader breader = null;
@@ -250,6 +272,7 @@ public class PutFile implements Runnable {
 		return new String(newCharArray).getBytes(StandardCharsets.UTF_8);
 		
 	}
+	
 
 	
 	
