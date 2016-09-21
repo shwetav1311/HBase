@@ -13,8 +13,8 @@ public class Region {
 
 	String startKey;
 	String endKey;
-	TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > memStore;
-	TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > tempStore;   // when memstore is full
+	static TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > memStore;
+	static TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > tempStore;   // when memstore is full
 	int size;
 	
 	Region()
@@ -97,7 +97,7 @@ public class Region {
 						if(cellListMap.containsKey(columnName)==false)/** column key is absent **/
 						{
 							ArrayList<Cell> myCells =  new ArrayList<Cell>(); //) column.getCellsList();
-							myCells.add(column.getCells());
+							myCells.add(column.getCells()); // gets only 1 cell
 							cellListMap.put(columnName, myCells); //Final level map added
 						}
 						else
@@ -110,8 +110,18 @@ public class Region {
 			
 		}
 		
+		if(isMemStoreFull(4))
+		{
+			tempStore = memStore;
+			writeToHFile();
+		}
 	}
 	
+	private static void writeToHFile() {
+		// TODO Auto-generated method stub
+			WriteHFiles myObj = new WriteHFiles(tempStore);
+	}
+
 	private static TreeMap<String, TreeMap<String, ArrayList<Cell>>> insertNewColumnFamily(ColumnFamily columnFamily,TreeMap<String, TreeMap<String, ArrayList<Cell> > > colFamilyMap ) {
 		// TODO Auto-generated method stub
 		
@@ -148,8 +158,8 @@ public class Region {
 		
 	}
 	
-	void isMemStoreFull(int input_size)
+	boolean isMemStoreFull(int input_size)
 	{
-		
+		return true;
 	}
 }
