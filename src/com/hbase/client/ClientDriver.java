@@ -144,7 +144,7 @@ public class ClientDriver {
 			cell.setColValue(value);
 			cell.setTimestamp(new Date().getTime());
 			
-			column.addCells(cell.build());
+			column.setCells(cell.build());
 			
 			if (map.get(col[0]) != null)
 			{
