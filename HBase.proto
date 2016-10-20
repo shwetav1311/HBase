@@ -1,4 +1,4 @@
-syntax = "proto2";
+	syntax = "proto2";
 
 message Cell
 {
@@ -9,8 +9,7 @@ message Cell
 message Column
 {
 	optional string colName=1;
-	optional Cell cells=2;  // Will be empty for getRequest
-		
+    repeated Cell cells=2;  // Will be empty for getRequest		
 }
 
 message ColumnFamily
@@ -32,8 +31,6 @@ message CreateTableResponse
 }
 
 //When Region Server/Master receives create request. It will create a file with the table name and store the table metadata (columns) in the file.
-
-
 
 message PutRequest
 {
