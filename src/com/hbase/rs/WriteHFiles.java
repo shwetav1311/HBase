@@ -30,7 +30,7 @@ public class WriteHFiles {
 	
 	
 	
-	public void write(String tableName,String start, String end,String version)
+	public void write(String tableName,String start, String end)
 	{
 		/** get all the values in sorted order **/
 			
@@ -40,6 +40,7 @@ public class WriteHFiles {
 		FileOutputStream indexOut= null;
 		try {
 			
+			/** this has to be changed to the ts sent by the region server **/
 			Date date= new Date();
 			Timestamp ts = new Timestamp(date.getTime());
 			String timeStamp = ts.toString();
@@ -100,7 +101,8 @@ public class WriteHFiles {
 			System.out.println("The size of the file is "+nBytes);
 			String hexNumber = Integer.toHexString(nBytes);
 			
-			
+			//This is just ot prefix something with 0s in case the length doesnt go upto 8 bytes
+			/***************************************************************************/
 			if(hexNumber.length()<8)
 			{
 				int prefix = 8 - hexNumber.length();
@@ -111,12 +113,12 @@ public class WriteHFiles {
 					prefix--;
 				}			
 				hexNumber = temp + hexNumber;
-			}
-			
+			}			
+			/***************************************************************************/
 			System.out.println("The hex number is "+hexNumber);
 			
 					
-			
+			//Writing HFile
 			try {				
 				stream.write(hexNumber.getBytes(Charset.forName("UTF-8")));
 				stream.write(bytes);
@@ -134,7 +136,8 @@ public class WriteHFiles {
 			startByteIndicator = startByteIndicator  + nBytes; 
 			
         }
-			
+		
+        //Index File
         try {				
 			indexOut.write(indexListObj.build().toByteArray());
 			indexOut.close();

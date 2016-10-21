@@ -12,9 +12,19 @@ import com.hbase.miscl.HBase.PutRequest;
 public class MemStore {
 	
 	
-	static TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > memStore;
-	static TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > tempStore; 
+	public TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > memStore;
+	public TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > tempStore; 
+	public static String tableName;
+	public String startKey;
+	public String endKey;
 	
+	public MemStore(String tblName,String sKey,String eKey)
+	{
+		memStore = new TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > >();		
+		tableName  = tblName;
+		startKey = sKey;
+		endKey = eKey;
+	}
 	
 	void insertIntoMemStore(PutRequest dataIn)
 	{
@@ -96,15 +106,18 @@ public class MemStore {
 		if(isMemStoreFull(4))
 		{
 			tempStore = memStore;
+			memStore = new TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > >();
 			memStore.clear();
 			writeToHFile();
 		}
 
 	}
 	
-	private static void writeToHFile() {
+	private  void writeToHFile() {
 		// TODO Auto-generated method stub
 			WriteHFiles myObj = new WriteHFiles(tempStore);
+			
+			myObj.write(tableName,startKey,endKey);
 	}
 
 	private static TreeMap<String, TreeMap<String, ArrayList<Cell>>> insertNewColumnFamily(ColumnFamily columnFamily,TreeMap<String, TreeMap<String, ArrayList<Cell> > > colFamilyMap ) {
