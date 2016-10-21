@@ -101,9 +101,7 @@ public class GetRow {
 	String searchInHFile(String rowKey,String colFamil,String colName)
 	{
 		
-//		PutFile putFile = new PutFile(filename,filename)
 		ListFile listFile = new ListFile(tableName+HBaseConstants.FILE_SEPARATOR+startKey);
-//		ListFile listIndexFile = new ListFile("index_"+tableName+"_"+startKey);
 		List<String> listNames = listFile.list();
 		
 		List<HFile> hList = new ArrayList<>();

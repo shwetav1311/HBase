@@ -7,5 +7,9 @@ public final class HBaseConstants {
 	public static final Integer  RS_PORT = 9000;
 	
 	public static final String  FILE_SEPARATOR = "_";
+	
+	public static final Integer  ROW_NOT_FOUND = -1;
+
+	
 
 }

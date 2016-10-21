@@ -16,7 +16,7 @@ public class Converter {
 		// TODO Auto-generated method stub
 		Integer nBytes = 0;
 		
-		FileOutputStream stream= null;
+		/*FileOutputStream stream= null;
 		try {
 			stream = new FileOutputStream("sampleFile");
 		} catch (FileNotFoundException e2) {
@@ -118,7 +118,7 @@ public class Converter {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}			
-					
+					*/
 	}
 	
 	public static int hexToDec(String str)
