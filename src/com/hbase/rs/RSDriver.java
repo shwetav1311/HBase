@@ -126,6 +126,7 @@ public class RSDriver implements IRegionServer {
 		/** Put request will be written here
 		 * Some program will identify the region and give its reference
 		 *  **/
+		System.out.print("in put rs driber");
 		
 		PutResponse.Builder res = PutResponse.newBuilder();
 		res.setStatus(Constants.STATUS_SUCCESS);
@@ -135,15 +136,23 @@ public class RSDriver implements IRegionServer {
 			
 			String tableName = req.getTableName();
 			
-			if(regionMap.get(tableName)!=null)
+			if(regionMap.get(tableName) == null)
 			{
+				System.out.println("table not found");
+				
 				ArrayList<Region> arr = new ArrayList<>();
 				Region region = new Region(tableName, "0");
 				arr.add(region);
 				regionMap.put(tableName,arr);
+				
+				regionMap.get(tableName).get(0).insertRow(req);
+				
+				
+				
 			}else
 			{
 				regionMap.get(tableName).get(0).insertRow(req);
+//				System.out.println(regionMap.get(tableName));
 			}
 			
 			
@@ -152,6 +161,7 @@ public class RSDriver implements IRegionServer {
 			e.printStackTrace();
 		}catch (Exception e)
 		{
+			e.printStackTrace();
 			res.setStatus(Constants.STATUS_FAILED);
 		}
 		
@@ -162,6 +172,7 @@ public class RSDriver implements IRegionServer {
 	public byte[] get(byte[] inp) throws RemoteException {
 		// TODO Auto-generated method stub
 		
+		System.out.print("in get rs driber");
 		try {
 			GetRequest req = GetRequest.parseFrom(inp);
 			
@@ -173,6 +184,9 @@ public class RSDriver implements IRegionServer {
 			if(regionMap.get(table)!=null)
 			{
 				List<ColumnFamily> ans = regionMap.get(table).get(0).retreiveRow(req.getRowkey(),req.getColFamilyList());
+				
+				System.out.println("ans  size"+ ans.size());
+				
 				res.setStatus(Constants.STATUS_SUCCESS);
 				res.addAllColFamily(ans);
 			}	

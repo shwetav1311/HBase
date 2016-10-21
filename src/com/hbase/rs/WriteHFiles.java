@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -21,9 +22,9 @@ import com.hbase.miscl.HBaseConstants;
 
 public class WriteHFiles {
 	
-	public static TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > memStore;
+	public static TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > memStore;
 	
-	public WriteHFiles(TreeMap<String, TreeMap<String, TreeMap<String, ArrayList<Cell> > > > tempStore) {
+	public WriteHFiles(TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore) {
 		// TODO Auto-generated constructor stub
 		memStore = tempStore ;
 	}
@@ -66,7 +67,7 @@ public class WriteHFiles {
         	IndexEntry.Builder indexEntryObj =IndexEntry.newBuilder(); 
         	
         	rowObject.setRowID(key);
-        	TreeMap<String, TreeMap<String, ArrayList<Cell> > > tempColFamilies = memStore.get(key);
+        	TreeMap<String, TreeMap<String, List<Cell> > > tempColFamilies = memStore.get(key);
         	
         	//prepares Column Families
         	for(String colFamilyName: tempColFamilies.keySet())
@@ -75,12 +76,12 @@ public class WriteHFiles {
         		myColFam.setName(colFamilyName);
         		
         		ArrayList<Column.Builder> myColumns = new ArrayList<>();
-        		TreeMap<String, ArrayList<Cell> > myColumnMap = tempColFamilies.get(colFamilyName);
+        		TreeMap<String, List<Cell>> myColumnMap = tempColFamilies.get(colFamilyName);
         		
         		//Prepares Columns
         		for(String colName : myColumnMap.keySet())
         		{
-        			ArrayList<Cell> myCells = myColumnMap.get(colName);
+        			List<Cell> myCells = myColumnMap.get(colName);
         			
         			Column.Builder newCol = Column.newBuilder();
         			newCol.setColName(colName);

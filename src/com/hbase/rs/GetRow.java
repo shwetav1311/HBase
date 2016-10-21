@@ -49,11 +49,11 @@ public class GetRow {
 	
 	
 	
-	ArrayList<ColumnFamily>  performGet(String rowkey,ArrayList<ColumnFamily> colFamily)
+	ArrayList<ColumnFamily>  performGet(String rowkey,List<ColumnFamily> list)
 	{
 		ArrayList<ColumnFamily> columnFamilies = new ArrayList<>();
 		
-		for(ColumnFamily cFamily : colFamily)
+		for(ColumnFamily cFamily : list)
 		{
 			String colFamilyName = cFamily.getName();
 			String colName = cFamily.getColumns(0).getColName();
@@ -67,16 +67,20 @@ public class GetRow {
 				val = searchInHFile(rowkey, colFamilyName, colName);
 			}
 			
+			System.out.println("found "+val);
 			ColumnFamily.Builder ansCFamily = ColumnFamily.newBuilder();
 			ansCFamily.setName(colFamilyName);
 
-			Column.Builder ansColumn = Column.newBuilder(cFamily.getColumns(0));
+			Column.Builder ansColumn = Column.newBuilder();
+			ansColumn.setColName(colName);
 			Cell.Builder cell = Cell.newBuilder();
 			cell.setColValue(val);
 			
 			ansColumn.addCells(cell);
-			
+			ansCFamily.addColumns(ansColumn);
 			columnFamilies.add(ansCFamily.build());
+			
+			System.out.println(columnFamilies);
 			
 		}
 		
@@ -90,6 +94,7 @@ public class GetRow {
 		
 		try
 		{
+			System.out.print("searching in memstire "+store.memStore.get(rowKey).get(colFamily).get(colName).get(0).getColValue());
 			return store.memStore.get(rowKey).get(colFamily).get(colName).get(0).getColValue();
 		}catch(NullPointerException e)
 		{
