@@ -120,7 +120,7 @@ public class WriteHFiles {
 			try {				
 				stream.write(hexNumber.getBytes(Charset.forName("UTF-8")));
 				stream.write(bytes);
-				
+				stream.close();
 			}
 			catch (IOException e) {
 				// TODO Auto-generated catch block

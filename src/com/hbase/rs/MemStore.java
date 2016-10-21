@@ -96,6 +96,7 @@ public class MemStore {
 		if(isMemStoreFull(4))
 		{
 			tempStore = memStore;
+			memStore.clear();
 			writeToHFile();
 		}
 
@@ -145,7 +146,8 @@ public class MemStore {
 	
 	boolean isMemStoreFull(int input_size)
 	{
-		return true;
+		return input_size>4;
+		
 	}
 	
 	
