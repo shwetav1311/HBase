@@ -144,7 +144,7 @@ public class ClientDriver {
 			cell.setColValue(value);
 			cell.setTimestamp(new Date().getTime());
 			
-			column.setCells(cell.build());
+			column.addCells(cell.build());
 			
 			if (map.get(col[0]) != null)
 			{
@@ -159,6 +159,8 @@ public class ClientDriver {
 		}
 		
 		
+		
+		
 		for (Entry<String, ArrayList<Column>> entry : map.entrySet())
 		{
 			
@@ -166,10 +168,11 @@ public class ClientDriver {
 			cFamily.setName(entry.getKey());
 			cFamily.addAllColumns(entry.getValue());
 			
-			
+			putRequest.addColFamily(cFamily);
 			
 		}
 
+	
 		
 		
 		//put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’ 
@@ -180,7 +183,10 @@ public class ClientDriver {
 			PutResponse putResponse = PutResponse.parseFrom(res);
 			if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
 			{
-				
+				System.out.println("suxxess");
+			}else
+			{
+				System.out.println("failde");
 			}
 		
 		} catch (RemoteException e) {
@@ -239,12 +245,17 @@ public class ClientDriver {
 		
 		byte[] res;
 		try {
-			res = rsStub.put(getRequest.build().toByteArray());
+			res = rsStub.get(getRequest.build().toByteArray());
 			GetResponse getResponse = GetResponse.parseFrom(res);
 			
 			if(getResponse.getStatus()==Constants.STATUS_SUCCESS)
 			{
-				
+				System.out.print("success");
+				System.out.println(getResponse.getColFamilyCount());
+				System.out.print(getResponse.getColFamily(0));
+			}else
+			{
+				System.out.print("falild");
 			}
 		
 		} catch (RemoteException e) {
