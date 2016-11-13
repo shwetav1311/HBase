@@ -19,6 +19,7 @@ import com.hbase.miscl.HBase.IndexEntry;
 import com.hbase.miscl.HBase.IndexList;
 import com.hbase.miscl.HBase.Row;
 import com.hbase.miscl.HBaseConstants;
+import com.hdfs.miscl.PutFile;
 
 public class WriteHFiles {
 	
@@ -37,6 +38,7 @@ public class WriteHFiles {
 			
 		Set<String> keys = memStore.keySet();
 		
+		String hFileName = ""; 
 		FileOutputStream stream= null;
 		FileOutputStream indexOut= null;
 		try {
@@ -47,7 +49,7 @@ public class WriteHFiles {
 			String timeStamp = ts.toString();
 			
 			String fileName = timeStamp + HBaseConstants.FILE_SEPARATOR + tableName + HBaseConstants.FILE_SEPARATOR + start;
-			
+			hFileName = fileName;
 			stream = new FileOutputStream(fileName); //name of the file has to be decided
 			
 			String indexFile = "index"+ HBaseConstants.FILE_SEPARATOR  +timeStamp + HBaseConstants.FILE_SEPARATOR + tableName + HBaseConstants.FILE_SEPARATOR + start;
@@ -102,7 +104,7 @@ public class WriteHFiles {
 			System.out.println("The size of the file is "+nBytes);
 			String hexNumber = Integer.toHexString(nBytes);
 			
-			//This is just ot prefix something with 0s in case the length doesnt go upto 8 bytes
+			//This is just to prefix something with 0s in case the length doesnt go upto 8 bytes
 			/***************************************************************************/
 			if(hexNumber.length()<8)
 			{
@@ -129,6 +131,10 @@ public class WriteHFiles {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			/** the hfile is written locally, write that to HDFS **/
+			
+			putIntoHDFS(hFileName);
         	
 			indexEntryObj.setRowID(key);
 			indexEntryObj.setStartByte(startByteIndicator);
@@ -153,6 +159,23 @@ public class WriteHFiles {
 	
 	
 	
+	private void putIntoHDFS(String hFileName) {
+		// TODO Auto-generated method stub
+		
+		PutFile putFile = new PutFile(hFileName,hFileName);
+		Thread thread1 = new Thread(putFile);
+		thread1.start();
+		try {
+			thread1.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("File inserted into HDFS");
+	}
+
+
+
 	/** code to convert hex to int **/ 
 	public static int hexToDec(String str)
 	{

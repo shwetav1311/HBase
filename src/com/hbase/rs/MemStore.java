@@ -9,6 +9,7 @@ import com.hbase.miscl.HBase.Cell;
 import com.hbase.miscl.HBase.Column;
 import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.PutRequest;
+import com.hdfs.miscl.Constants;
 
 public class MemStore {
 	
@@ -113,6 +114,7 @@ public class MemStore {
 			memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();
 			memStore.clear();
 			writeToHFile();
+			count = 0;
 		}
 
 	}
@@ -163,16 +165,11 @@ public class MemStore {
 	
 	boolean isMemStoreFull(int input_size)
 	{
-		return input_size>4;
+		return input_size>Constants.MEMSTORE_CONTENTS;
 		
 	}
 	
-	
-	void isMemStoreFull()
-	{
-		
-	}
-	
+
 	List<com.hbase.miscl.HBase.ColumnFamily> searchMemStore()  // when get method searches in memstore
 	{
 		return null;
