@@ -16,6 +16,7 @@ public final class Constants {
 	public static final String NAME_NODE_CONF_NEW = "NNConf_New";//constant by sheshadri
 	public static final String BLOCK_NUM_FILE = "BlockNum";//constant by sheshadri
 	public static final String DATA_NODE_CONF = "DNConf";//constant by sheshadri
+	public static final String TIMESTAMP_GEN = "TimestampGen";
 	public static final String OUTPUT_FILE = "out_"; //constant by sheshadri
 	public static final String PREFIX_DIR = "File/";//constant by sheshadri
 	
