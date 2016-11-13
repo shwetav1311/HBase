@@ -38,9 +38,12 @@ public class WriteHFiles {
 			
 		Set<String> keys = memStore.keySet();
 		
+		/** Index files **/
 		String hFileName = ""; 
+		String indexHFile = "";
 		FileOutputStream stream= null;
 		FileOutputStream indexOut= null;
+		/** index files and their outstreams **/
 		try {
 			
 			/** this has to be changed to the ts sent by the region server **/
@@ -53,6 +56,7 @@ public class WriteHFiles {
 			stream = new FileOutputStream(fileName); //name of the file has to be decided
 			
 			String indexFile = "index"+ HBaseConstants.FILE_SEPARATOR  +timeStamp + HBaseConstants.FILE_SEPARATOR + tableName + HBaseConstants.FILE_SEPARATOR + start;
+			indexHFile = indexFile;
 			indexOut= new FileOutputStream(indexFile);
 		} catch (FileNotFoundException e2) {
 			// TODO Auto-generated catch block
@@ -148,6 +152,7 @@ public class WriteHFiles {
         try {				
 			indexOut.write(indexListObj.build().toByteArray());
 			indexOut.close();
+			putIntoHDFS(indexHFile);
 
 		}
 		catch (IOException e) {
@@ -158,7 +163,7 @@ public class WriteHFiles {
 	}
 	
 	
-	
+	/** file(s) into HDFS **/ 
 	private void putIntoHDFS(String hFileName) {
 		// TODO Auto-generated method stub
 		
@@ -173,6 +178,8 @@ public class WriteHFiles {
 		}
 		System.out.println("File inserted into HDFS");
 	}
+	
+	
 
 
 
