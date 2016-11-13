@@ -10,6 +10,8 @@ public final class HBaseConstants {
 	
 	public static final Integer  ROW_NOT_FOUND = -1;
 	public static final String  INDEX_PREFIX = "index";
+	public static final String TIMESTAMP_GEN = "TimestampGen";
+	public static final long MEMSTORE_CONTENTS = 4;
 
 	
 

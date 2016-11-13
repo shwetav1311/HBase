@@ -14,6 +14,7 @@ import com.hbase.miscl.HBase.Cell;
 import com.hbase.miscl.HBase.Column;
 import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.PutRequest;
+import com.hbase.miscl.HBaseConstants;
 import com.hdfs.miscl.Constants;
 
 public class MemStore {
@@ -171,7 +172,7 @@ public class MemStore {
 	
 	boolean isMemStoreFull(int input_size)
 	{
-		return input_size>Constants.MEMSTORE_CONTENTS;
+		return input_size>HBaseConstants.MEMSTORE_CONTENTS;
 		
 	}
 	
@@ -200,7 +201,7 @@ public class MemStore {
 		
 		try {
 			
-			BufferedReader buff = new BufferedReader(new FileReader(Constants.TIMESTAMP_GEN));
+			BufferedReader buff = new BufferedReader(new FileReader(HBaseConstants.TIMESTAMP_GEN));
 			String line=buff.readLine();
 			buff.close();
 			
@@ -208,7 +209,7 @@ public class MemStore {
 			num++;
 			PrintWriter pw;
 			try {
-				pw = new PrintWriter(new FileWriter(Constants.TIMESTAMP_GEN));
+				pw = new PrintWriter(new FileWriter(HBaseConstants.TIMESTAMP_GEN));
 			    pw.write(num.toString());
 		        pw.close();
 			} catch (IOException e) {
