@@ -58,7 +58,7 @@ public class WriteHFiles {
 			hFileName = fileName;
 			stream = new FileOutputStream(fileName); //name of the file has to be decided
 			
-			String indexFile = "index"+ HBaseConstants.FILE_SEPARATOR  +timeStamp + HBaseConstants.FILE_SEPARATOR + tableName + HBaseConstants.FILE_SEPARATOR + start;
+			String indexFile = HBaseConstants.INDEX_PREFIX + HBaseConstants.FILE_SEPARATOR  +timeStamp + HBaseConstants.FILE_SEPARATOR + tableName + HBaseConstants.FILE_SEPARATOR + start;
 			indexHFile = indexFile;
 			indexOut= new FileOutputStream(indexFile);
 		} catch (FileNotFoundException e2) {

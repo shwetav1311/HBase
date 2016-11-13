@@ -47,12 +47,12 @@ public class RSDriver implements IRegionServer {
 		File f = null;
 	    boolean bool = false;
 	    try{
-	    	f = new File(Constants.TIMESTAMP_GEN);
+	    	f = new File(HBaseConstants.TIMESTAMP_GEN);
 	    	bool = f.exists();
 	    	if(bool==false)
 	    	{
 	    		f.createNewFile();
-	    		PrintWriter writer = new PrintWriter(Constants.TIMESTAMP_GEN, "UTF-8");
+	    		PrintWriter writer = new PrintWriter(HBaseConstants.TIMESTAMP_GEN, "UTF-8");
 	    	    writer.println("0");	    	    
 	    	    writer.close();
 	    	}
