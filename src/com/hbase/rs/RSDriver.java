@@ -198,6 +198,13 @@ public class RSDriver implements IRegionServer {
 			
 			String table = req.getTableName();
 			
+			if(regionMap.get(table) == null)
+			{
+				ArrayList<Region> arr = new ArrayList<>();
+				Region region = new Region(table, "0");
+				arr.add(region);
+				regionMap.put(table,arr);
+			}
 			GetResponse.Builder res = GetResponse.newBuilder();
 			res.setStatus(Constants.STATUS_NOT_FOUND);
 			

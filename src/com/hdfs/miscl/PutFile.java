@@ -30,7 +30,7 @@ import com.hdfs.namenode.INameNode;
 public class PutFile implements Runnable {
 
 	public static String fileName;
-	public long FILESIZE;
+	public static long FILESIZE;
 	public FileInputStream fis;
 	public String threadName;
 	private Thread t;
@@ -88,14 +88,12 @@ public class PutFile implements Runnable {
 					if(status==Constants.STATUS_FAILED )//status failed change it
 					{
 						System.out.println("Fatal Error!");
-						this.status=status;
-						return;
+						System.exit(0);
 					}
 					else if(status==Constants.STATUS_NOT_FOUND)
 					{
 						System.out.println("Duplicate File");
-						this.status=status;
-						return;
+						System.exit(0);
 					}
 					
 					AssignBlockRequest.Builder assgnBlockReqObj = AssignBlockRequest.newBuilder(); 
@@ -107,7 +105,7 @@ public class PutFile implements Runnable {
 					int offset=0;
 					
 					/**calculate block size **/
-					int no_of_blocks=getNumberOfBlocks(fileName);					
+					int no_of_blocks=getNumberOfBlocks();					
 					try {
 						/**open the input stream **/
 						fis = new FileInputStream(fileName);
@@ -141,8 +139,7 @@ public class PutFile implements Runnable {
 						if(status==Constants.STATUS_FAILED)
 						{
 							System.out.println("Fatal Error!");
-							status=Constants.STATUS_FAILED;
-							return;
+							System.exit(0);
 						}
 						
 						blkLocation = assignResponseObj.getNewBlock();
@@ -168,6 +165,8 @@ public class PutFile implements Runnable {
 						byte[] byteArray = read32MBfromFile(offset);
 						offset=offset+(int)Constants.BLOCK_SIZE;
 						
+						System.out.println("Byte array"+byteArray.length);
+						
 						writeBlockObj.addData(ByteString.copyFrom(byteArray));
 						writeBlockObj.setBlockInfo(blkLocation);
 						
@@ -184,10 +183,7 @@ public class PutFile implements Runnable {
 					if(closeResObj.getStatus()==Constants.STATUS_FAILED)
 					{
 						System.out.println("Close File response Status Failed");
-						
-						status=Constants.STATUS_FAILED;
-						return;
-						
+						System.exit(0);
 					}
 					
 					try {
@@ -203,32 +199,48 @@ public class PutFile implements Runnable {
 					// TODO Auto-generated catch block
 					System.out.println("Could not find NameNode");
 					e.printStackTrace();
-					status=Constants.STATUS_FAILED;
-					return;
 				}
 				
 			
 		}catch (RemoteException e) {
 			// TODO Auto-generated catch block
 				e.printStackTrace();
-				status=Constants.STATUS_FAILED;
-				return;
 		}		
 		
 		
 	}
 	
 
+	public static int getNumberOfBlocks()
+	{
+		File inputFile = new File(fileName);
+		if(!inputFile.exists())
+		{
+			System.out.println("File Does not exist");
+			System.exit(0);
+		}
+		
+		long fileSize = inputFile.length();
+		FILESIZE=inputFile.length();
+		
+		
+		double noOfBlocks = Math.ceil((double)fileSize*1.0/(double)Constants.BLOCK_SIZE*1.0);
+		
+		System.out.println("The length of the file is "+fileSize+ " Number of blocks are "+(int)noOfBlocks);
+		
+		return (int)noOfBlocks;
+	}
+	
 	/**Read 32MB size of data from the provided input file **/
-	public byte[] read32MBfromFile(int offset)
+	public static byte[] read32MBfromFile(int offset)
 	{
 		
 		System.out.println("offset is "+offset);
 
 		
-		BufferedReader breader = null;
+		FileInputStream breader = null;
 		try {
-			breader = new BufferedReader(new FileReader(fileName) );
+			breader = new FileInputStream(fileName);
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -250,10 +262,12 @@ public class PutFile implements Runnable {
 			bytesToBeRead = (int)Constants.BLOCK_SIZE;			
 		}
 		
-		char[] newCharArray = new char[bytesToBeRead];
+		
+		
+		byte[] newCharArray = new byte[bytesToBeRead];
 		
 		try {
-			breader.skip(offset);
+//			breader.skip(offset);
 			breader.read(newCharArray, 0, bytesToBeRead);
 			
 			
@@ -269,40 +283,14 @@ public class PutFile implements Runnable {
 		}
 		
 //		System.out.println("The new char array is "+newCharArray.length);
-		return new String(newCharArray).getBytes(StandardCharsets.UTF_8);
+		return newCharArray;
 		
 	}
+	
 	
 
 	
 	
-	/**Returns the number of blocks the file to which the file gets divided into **/
-	public int getNumberOfBlocks(String fileName)
-	{
-		File inputFile = new File(fileName);
-		if(!inputFile.exists())
-		{
-			System.out.println("File Does not exist");
-			System.exit(0);
-		}
-		
-		long fileSize = inputFile.length();
-		FILESIZE=inputFile.length();
-		double noOfBlocks = Math.ceil((double)fileSize*1.0/(double)Constants.BLOCK_SIZE*1.0);
-		
-//		System.out.println("The length of the file is "+fileSize+ " Number of blocks are "+(int)noOfBlocks);
-		
-		return (int)noOfBlocks;
-	}
 	
-	public void start ()
-	   {
-//	      System.out.println("Starting " +  threadName );
-	      if (t == null)
-	      {
-	         t = new Thread (this, threadName);
-	         t.start ();
-	      }
-	   }
 	
 }

@@ -117,10 +117,11 @@ public class MemStore {
 		if(isMemStoreFull(count))
 		{
 			tempStore = memStore;
-			memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();
-			memStore.clear();
 			writeToHFile();
+			memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();
+//			writeToHFile();
 			count = 0;
+//			memStore.clear();
 		}
 
 	}

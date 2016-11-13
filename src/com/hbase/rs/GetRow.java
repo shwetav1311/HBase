@@ -65,6 +65,12 @@ public class GetRow {
 			}else
 			{
 				val = searchInHFile(rowkey, colFamilyName, colName);
+				
+				if(val==null)
+				{
+					System.out.println("Key Not Found in HFile");
+					return new ArrayList<ColumnFamily>();
+				}
 			}
 			
 			System.out.println("found "+val);
@@ -109,10 +115,14 @@ public class GetRow {
 		ListFile listFile = new ListFile(tableName+HBaseConstants.FILE_SEPARATOR+startKey);
 		List<String> listNames = listFile.list();
 		
+		System.out.println("List files"+listNames);
+		
 		List<HFile> hList = new ArrayList<>();
 		
 		for(String fileName: listNames)
 		{
+			if(fileName.startsWith(HBaseConstants.INDEX_PREFIX))
+				continue;
 			String[] token = fileName.split(HBaseConstants.FILE_SEPARATOR);
 			HFile hFile = new HFile();
 			hFile.timeStamp=token[0];
@@ -136,6 +146,7 @@ public class GetRow {
 			GetFile getFile  = new GetFile(list.fileName, Constants.OUTPUT_FILE+list.fileName);
 			
 			Thread thread = new Thread(getFile);
+			thread.start();
 			
 			try {
 				thread.join();  //waits for thread to get over
@@ -150,6 +161,7 @@ public class GetRow {
 			
 			
 			Thread thread1 = new Thread(getFile1);
+			thread1.start();
 			
 			try {
 				thread1.join();  //waits for thread to get over
@@ -159,6 +171,8 @@ public class GetRow {
 			}
 			
 			Integer offset = returnOffsetHFile(Constants.OUTPUT_FILE+indexFile, rowKey);
+			
+			System.out.println("Offset  to be read is"+offset);
 			
 			if(offset!=-1)
 			{
@@ -195,6 +209,9 @@ public class GetRow {
 	
 	Integer returnOffsetHFile(String fileName,String rowKey)
 	{
+//		System.out.println("Index file name is"+fileName);
+//		System.out.println("rokey"+rowKey);
+		
 		File file = new File(fileName);
 		FileInputStream fis;
 		try {
@@ -205,7 +222,9 @@ public class GetRow {
 			
 			IndexList indexList = IndexList.parseFrom(data);
 			
-			ArrayList<IndexEntry> indexArr = (ArrayList<IndexEntry>) indexList.getIndexList();
+			List<IndexEntry> indexArr = indexList.getIndexList();
+			
+//			System.out.println("Index list"+indexList);
 			
 			Integer first = 0;
 			Integer last = indexArr.size()-1;
@@ -218,7 +237,7 @@ public class GetRow {
 					return indexArr.get(mid).getStartByte();
 				}
 				
-				else if(indexArr.get(mid).getRowID().compareTo(rowKey)<0)
+				else if(indexArr.get(mid).getRowID().compareTo(rowKey)>0)
 				{
 					
 					last=mid-1;
@@ -251,23 +270,32 @@ public class GetRow {
 		 FileInputStream fis = null;
 		 
 		 try {
-			fis = new FileInputStream(fileName);
 			
-			fis.read(bs,offset,8);
+			 System.out.println("Reading "+fileName);
+			 System.out.println("Offset "+offset);
+			 fis = new FileInputStream(fileName);
+			 
+			 fis.skip(offset);
+			  fis.read(bs,0,8);
 			
 			
 			String str = new String(bs, StandardCharsets.UTF_8);
 			System.out.println("The length we are looking for is "+str);
 			int len = Converter.hexToDec(str);
+			System.out.println("The length we are looking for in int is "+len);
 			
 			byte[] data = new byte[len];			
 			
-			fis.read(data,offset+8,len);
+			int i = fis.read(data,0,len);
+			System.out.println("Read "+i);
 			
 			fis.close();
 			
+			System.out.println("Reading lenth"+data.length);
+			
 			Row rows = Row.parseFrom(data);
 			
+			System.out.println(rows);
 			
 			
 			return rows.getColFamilyList();

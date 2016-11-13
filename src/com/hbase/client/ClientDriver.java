@@ -252,6 +252,12 @@ public class ClientDriver {
 			{
 				System.out.print("success");
 				System.out.println(getResponse.getColFamilyCount());
+				if(getResponse.getColFamilyCount()==0)
+				{
+					System.out.println("Not Found");
+					System.exit(0);
+				}
+				
 				System.out.print(getResponse.getColFamily(0));
 			}else
 			{

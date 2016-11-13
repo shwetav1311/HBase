@@ -189,7 +189,9 @@ public class GetFile implements Runnable{
 						return;
 					}
 					
-					responseArray = readBlockResObj.getData(0).toByteArray();						
+					responseArray = readBlockResObj.getData(0).toByteArray();	
+//					System.out.println("Response array size"+responseArray.length);
+					
 					String str = new String(responseArray, StandardCharsets.UTF_8);						
 					//fileWriteObj.writeonly(str);
 					fileWriteObj.writeBytes(responseArray);

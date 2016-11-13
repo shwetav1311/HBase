@@ -1,10 +1,12 @@
 package com.hbase.rs;
 
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,12 +14,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.Cell;
 import com.hbase.miscl.HBase.Column;
 import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.IndexEntry;
 import com.hbase.miscl.HBase.IndexList;
 import com.hbase.miscl.HBase.Row;
+import com.hbase.miscl.Converter;
 import com.hbase.miscl.HBaseConstants;
 import com.hdfs.miscl.PutFile;
 
@@ -80,28 +84,46 @@ public class WriteHFiles {
         		ColumnFamily.Builder myColFam = ColumnFamily.newBuilder();
         		myColFam.setName(colFamilyName);
         		
-        		ArrayList<Column.Builder> myColumns = new ArrayList<>();
+//        		ArrayList<Column.Builder> myColumns = new ArrayList<>();
         		TreeMap<String, List<Cell>> myColumnMap = tempColFamilies.get(colFamilyName);
         		
         		//Prepares Columns
         		for(String colName : myColumnMap.keySet())
         		{
-        			List<Cell> myCells = myColumnMap.get(colName);
-        			
         			Column.Builder newCol = Column.newBuilder();
         			newCol.setColName(colName);
-        			newCol.addAllCells(myCells);        			
         			
-        			myColumns.add(newCol);
+        			for(Cell cell : myColumnMap.get(colName))
+        			{
+        				Cell.Builder newCell = Cell.newBuilder();
+        				newCell.setColValue(cell.getColValue());
+        				newCell.setTimestamp(cell.getTimestamp());
+        				newCell.build();
+        				newCol.addCells(newCell);
+        			}
+        			newCol.build();
+        			
+        			myColFam.addColumns(newCol);
         		}
-        		
+        		myColFam.build();
         		rowObject.addColFamily(myColFam);
         	}
         	
         	
         	//Write the content to a file
         	byte[] bytes = rowObject.build().toByteArray(); // row object serialized 
-			
+        	
+        	
+			try {
+				Row myRow = Row.parseFrom(bytes);
+				
+				System.out.println("After parsing"+myRow);
+			} catch (InvalidProtocolBufferException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+        	
+        	
 			int nBytes = bytes.length;
 			
 			System.out.println("The size of the file is "+nBytes);
@@ -128,7 +150,7 @@ public class WriteHFiles {
 			try {				
 				stream.write(hexNumber.getBytes(Charset.forName("UTF-8")));
 				stream.write(bytes);
-				stream.close();
+				
 			}
 			catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -137,27 +159,33 @@ public class WriteHFiles {
 			
 			/** the hfile is written locally, write that to HDFS **/
 			
-			putIntoHDFS(hFileName);
+			
         	
 			indexEntryObj.setRowID(key);
+			System.out.println("Start byte "+startByteIndicator);
 			indexEntryObj.setStartByte(startByteIndicator);
 			
 			indexListObj.addIndex(indexEntryObj);
-			startByteIndicator = startByteIndicator  + nBytes; 
+			
+			startByteIndicator = startByteIndicator  +8 + nBytes; 
 			
         }
-		
-        //Index File
-        try {				
+        
+        try {
 			indexOut.write(indexListObj.build().toByteArray());
 			indexOut.close();
-			putIntoHDFS(indexHFile);
-
-		}
-		catch (IOException e) {
+		    stream.close();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+       
+        
+        
+        
+        putIntoHDFS(hFileName);
+        putIntoHDFS(indexHFile);
+		
 		
 	}
 	
