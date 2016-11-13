@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -42,6 +43,25 @@ public class RSDriver implements IRegionServer {
 		id=Integer.parseInt(args[0]);
 		
 		System.out.println("Region server Binding to Registry...");
+		
+		File f = null;
+	    boolean bool = false;
+	    try{
+	    	f = new File(Constants.TIMESTAMP_GEN);
+	    	bool = f.exists();
+	    	if(bool==false)
+	    	{
+	    		f.createNewFile();
+	    		PrintWriter writer = new PrintWriter(Constants.TIMESTAMP_GEN, "UTF-8");
+	    	    writer.println("0");	    	    
+	    	    writer.close();
+	    	}
+	    }
+	    catch(Exception e)
+	    {
+	    	System.out.println("File creation problem");
+	    }
+		
 		bindToRegistry();
 	}
 	

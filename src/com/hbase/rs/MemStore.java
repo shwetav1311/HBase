@@ -1,5 +1,10 @@
 package com.hbase.rs;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +25,7 @@ public class MemStore {
 	public String startKey;
 	public String endKey;
 	public int count = 0;
+	public static long numBlock=0;
 	
 	public MemStore(String tblName,String sKey,String eKey)
 	{
@@ -121,7 +127,7 @@ public class MemStore {
 	
 	private  void writeToHFile() {
 		// TODO Auto-generated method stub
-			WriteHFiles myObj = new WriteHFiles(tempStore);
+			WriteHFiles myObj = new WriteHFiles(tempStore,getTimeStamp());
 			
 			myObj.write(tableName,startKey,endKey);
 	}
@@ -186,6 +192,39 @@ public class MemStore {
 	void convertToList()
 	{
 		
+	}
+	
+	public static synchronized Long getTimeStamp()
+	{
+		
+		
+		try {
+			
+			BufferedReader buff = new BufferedReader(new FileReader(Constants.TIMESTAMP_GEN));
+			String line=buff.readLine();
+			buff.close();
+			
+			Long num = Long.parseLong(line);
+			num++;
+			PrintWriter pw;
+			try {
+				pw = new PrintWriter(new FileWriter(Constants.TIMESTAMP_GEN));
+			    pw.write(num.toString());
+		        pw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return num-1;
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ++numBlock;
 	}
 
 }

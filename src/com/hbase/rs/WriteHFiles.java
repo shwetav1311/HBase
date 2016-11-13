@@ -24,10 +24,12 @@ import com.hdfs.miscl.PutFile;
 public class WriteHFiles {
 	
 	public static TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > memStore;
+	public long blockNumber; 
 	
-	public WriteHFiles(TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore) {
+	public WriteHFiles(TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore,long blockNum) {
 		// TODO Auto-generated constructor stub
 		memStore = tempStore ;
+		blockNumber = blockNum;
 	}
 	
 	
@@ -43,14 +45,11 @@ public class WriteHFiles {
 		String indexHFile = "";
 		FileOutputStream stream= null;
 		FileOutputStream indexOut= null;
-		/** index files and their outstreams **/
+		/** index files and their out streams **/
 		try {
 			
 			/** this has to be changed to the ts sent by the region server **/
-			Date date= new Date();
-			Timestamp ts = new Timestamp(date.getTime());
-			String timeStamp = ts.toString();
-			
+			String timeStamp = blockNumber + "";
 			String fileName = timeStamp + HBaseConstants.FILE_SEPARATOR + tableName + HBaseConstants.FILE_SEPARATOR + start;
 			hFileName = fileName;
 			stream = new FileOutputStream(fileName); //name of the file has to be decided
