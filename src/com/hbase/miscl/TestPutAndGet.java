@@ -38,24 +38,24 @@ public class TestPutAndGet implements Runnable {
 		
 		// 1. Bind with registry
 		// 2. Put
-//		String id="1";
-//		Registry registry = null;
-//		try {
-//			registry = LocateRegistry.getRegistry(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+Integer.parseInt(id));
-//		} catch (RemoteException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		
-//		}
-//		
-//			try 
-//			{
-//				rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER+id);
-//			}catch (NotBoundException | RemoteException e) {
-//				// TODO Auto-generated catch block
-//				System.out.println("Could not find Region Server");
-//				e.printStackTrace();
-//			} 	
+		String id="1";
+		Registry registry = null;
+		try {
+			registry = LocateRegistry.getRegistry(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+Integer.parseInt(id));
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		}
+		
+			try 
+			{
+				rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER+id);
+			}catch (NotBoundException | RemoteException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Could not find Region Server");
+				e.printStackTrace();
+			} 	
 		
 //		String action = args[0];
 		String tableName = "MyCountry";
@@ -66,30 +66,59 @@ public class TestPutAndGet implements Runnable {
 		System.out.println(createTable[0]+" "+createTable[1]+" "+createTable[2]);
 		System.out.println(" ----------------------------------------------------------------- ");
 		System.out.println();
-//		createTable(tableName, createTable);
-		
+		createTable(tableName, createTable);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+//		
 			
 		initializeData();
-		TestCheckPutResponse threadPutRes = new TestCheckPutResponse();
-		threadPutRes.run();
+		
+		Thread t = new Thread(new TestCheckPutResponse());
+		t.start();
 		
 		
-		for(int i =0;i<myCities.length;i++)
+//		
+		
+		int cnt=0;
+		for(int j=0;j<30;j++)
 		{
-			StringBuilder myStringBuilder = new StringBuilder();
-			myStringBuilder = myStringBuilder.append("put "+tableName+" ");
-			myStringBuilder.append(String.valueOf(i)+" "); // row key
-			myStringBuilder.append("Address:State "+myStates[i]+" ");
-			myStringBuilder.append("Address:City "+myCities[i]+" ");
-			myStringBuilder.append("Work:Designation "+myDesignation[i]+" ");
-			System.out.println("calling put on ");
-			System.out.println(myStringBuilder.toString());
+			for(int i =0;i<myCities.length;i++)
+			{
+				StringBuilder myStringBuilder = new StringBuilder();
+				myStringBuilder = myStringBuilder.append("put "+tableName+" ");
+				myStringBuilder.append(String.valueOf(cnt++)+" "); // row key
+				myStringBuilder.append("Address:State "+myStates[i]+" ");
+				myStringBuilder.append("Address:City "+myCities[i]+" ");
+				myStringBuilder.append("Work:Designation "+myDesignation[i]+" ");
+//				System.out.println("calling put on ");
+//				System.out.println(myStringBuilder.toString());
+				
+				String str[] = myStringBuilder.toString().split(" ");
+				
+				
+				Thread t1 = new Thread(new TestHBasePutThread(rsStub, tableName, str));
+				t1.start();
+				
+				
+
+				
+//				System.out.println(" ----------------------------------------------------------------- ");
+//				System.out.println();
+			}
 			
-			TestHBasePutThread myThread = new TestHBasePutThread(rsStub, tableName, args);
-			myThread.run();
-			System.out.println(" ----------------------------------------------------------------- ");
-			System.out.println();
+//			try {
+//				Thread.sleep(500);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 		}
+		
+		
 		
 			
 	}
@@ -102,7 +131,7 @@ public class TestPutAndGet implements Runnable {
 		Integer count = 1;
 		
 		myCities = new String[] {"Bangalore","Pune","Delhi","Madras","Ahmedabad","Jaipur","Bikaner","Mumbai","Saurashtra","Chandigarh","Pondicherry","Lucknow","Panjim","Kolkata","Indore"};
-		myStates = new String[] {"Karnataka","Maharashtra","Delhi","TamilNadu","Gujarat","Gujarat","Rajastan","Maharashtra","Gujarat","Chandigarh","Pondicherry","Uttar Pradesh","Goa","West Bengal","Madhya Pradesh"};
+		myStates = new String[] {"Karnataka","Maharashtra","Delhi","TamilNadu","Gujarat","Gujarat","Rajastan","Maharashtra","Gujarat","Chandigarh","Pondicherry","UttarPradesh","Goa","WestBengal","MadhyaPradesh"};
 		for(int i=0;i<15;i++)
 		{
 			myDesignation[i] = "SC"+count.toString();
@@ -112,12 +141,23 @@ public class TestPutAndGet implements Runnable {
 	
 	public static synchronized Integer updateCounter(Integer incr)
 	{
-		if(incr!=0)			
-			putResponseCounter = putResponseCounter + 1;
-		else
-			putResponseCounter = 0;
+		int val=putResponseCounter;
 		
-		return putResponseCounter;
+		if(incr!=0)
+		{
+			putResponseCounter = putResponseCounter + incr;
+			val=putResponseCounter;
+			
+		}
+		else
+		{
+			val=putResponseCounter;
+			putResponseCounter = 0;
+		}
+		
+//		System.out.println("response counter "+val);
+		
+		return val;
 	}
 	
 		
