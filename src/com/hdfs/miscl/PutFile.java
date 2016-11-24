@@ -88,12 +88,12 @@ public class PutFile implements Runnable {
 					if(status==Constants.STATUS_FAILED )//status failed change it
 					{
 						System.out.println("Fatal Error!");
-						System.exit(0);
+//						System.exit(0);
 					}
 					else if(status==Constants.STATUS_NOT_FOUND)
 					{
 						System.out.println("Duplicate File");
-						System.exit(0);
+//						System.exit(0);
 					}
 					
 					AssignBlockRequest.Builder assgnBlockReqObj = AssignBlockRequest.newBuilder(); 
@@ -139,7 +139,7 @@ public class PutFile implements Runnable {
 						if(status==Constants.STATUS_FAILED)
 						{
 							System.out.println("Fatal Error!");
-							System.exit(0);
+//							System.exit(0);
 						}
 						
 						blkLocation = assignResponseObj.getNewBlock();
@@ -183,7 +183,7 @@ public class PutFile implements Runnable {
 					if(closeResObj.getStatus()==Constants.STATUS_FAILED)
 					{
 						System.out.println("Close File response Status Failed");
-						System.exit(0);
+//						System.exit(0);
 					}
 					
 					try {
@@ -217,7 +217,7 @@ public class PutFile implements Runnable {
 		if(!inputFile.exists())
 		{
 			System.out.println("File Does not exist");
-			System.exit(0);
+//			System.exit(0);
 		}
 		
 		long fileSize = inputFile.length();
