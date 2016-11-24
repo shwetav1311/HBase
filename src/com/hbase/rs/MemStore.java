@@ -36,10 +36,10 @@ public class MemStore {
 		endKey = eKey;
 	}
 	
-	void insertIntoMemStore(PutRequest dataIn)
+	synchronized void  insertIntoMemStore(PutRequest dataIn)
 	{
 		
-		System.out.println("recaching insert memstore");
+//		System.out.println("recaching insert memstore");
 		String rowKey = dataIn.getRowkey();
 		if(memStore.containsKey(rowKey)==false)
 		{
@@ -114,17 +114,25 @@ public class MemStore {
 			}
 			
 		}
-		count++;
-		if(isMemStoreFull(count))
-		{
-			tempStore = memStore;
-			writeToHFile();
-			memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();
-//			writeToHFile();
-			count = 0;
-//			memStore.clear();
-		}
+		incrementCount(1);
+		
 
+	}
+	
+	private synchronized void incrementCount(int inc)
+	{
+			count= count+inc;
+			if(isMemStoreFull(count))
+			{
+				tempStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >(memStore);
+				writeToHFile();
+//				memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();
+				memStore.clear();
+//				writeToHFile();
+				count = 0;
+//				memStore.clear();
+			}
+			
 	}
 	
 	private  void writeToHFile() {
@@ -171,7 +179,7 @@ public class MemStore {
 		
 	}
 	
-	boolean isMemStoreFull(int input_size)
+	synchronized boolean  isMemStoreFull(int input_size)
 	{
 		return input_size>HBaseConstants.MEMSTORE_CONTENTS;
 		
