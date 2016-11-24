@@ -28,14 +28,13 @@ public class Region {
 
 	void insertRow(PutRequest req)
 	{
-		System.out.println("recaching region");
+		
 		putRow.appendRow(req);
 	}
 	
 	
 	List<ColumnFamily> retreiveRow(String rowkey, List<ColumnFamily> list)
 	{
-		System.out.print("get the row");
 		
 		return getRow.performGet(rowkey, (List<ColumnFamily>) list);
 	}
