@@ -44,7 +44,7 @@ public class ClientDriver {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		String id="1";
+		String id="1";  // Region Server ID
 		Registry registry = null;
 		try {
 			registry = LocateRegistry.getRegistry(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+Integer.parseInt(id));
