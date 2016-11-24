@@ -1,0 +1,5 @@
+1. Create a directory structure for HFiles and IndexFiles
+2. Check why multiple block appends fail sometimes
+3. Zookeeper internal intergration passed at a standalone PC, extend it with multiple region server
+4. WAL Implementation locally done for per Region
+5. WAL multi region Proof of Concept developed, need further testing and intergration
