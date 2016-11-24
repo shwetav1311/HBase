@@ -114,19 +114,19 @@ public class WriteHFiles {
         	byte[] bytes = rowObject.build().toByteArray(); // row object serialized 
         	
         	
-			try {
-				Row myRow = Row.parseFrom(bytes);
-				
-				System.out.println("After parsing"+myRow);
-			} catch (InvalidProtocolBufferException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+//			try {
+//				Row myRow = Row.parseFrom(bytes);
+//				
+//				System.out.println("After parsing"+myRow);
+//			} catch (InvalidProtocolBufferException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
         	
         	
 			int nBytes = bytes.length;
 			
-			System.out.println("The size of the file is "+nBytes);
+//			System.out.println("The size of the file is "+nBytes);
 			String hexNumber = Integer.toHexString(nBytes);
 			
 			//This is just to prefix something with 0s in case the length doesnt go upto 8 bytes
@@ -143,7 +143,7 @@ public class WriteHFiles {
 				hexNumber = temp + hexNumber;
 			}			
 			/***************************************************************************/
-			System.out.println("The hex number is "+hexNumber);
+//			System.out.println("The hex number is "+hexNumber);
 			
 					
 			//Writing HFile
@@ -162,7 +162,7 @@ public class WriteHFiles {
 			
         	
 			indexEntryObj.setRowID(key);
-			System.out.println("Start byte "+startByteIndicator);
+//			System.out.println("Start byte "+startByteIndicator);
 			indexEntryObj.setStartByte(startByteIndicator);
 			
 			indexListObj.addIndex(indexEntryObj);
@@ -203,7 +203,7 @@ public class WriteHFiles {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("File inserted into HDFS");
+		System.out.println("File inserted into HDFS: "+hFileName);
 	}
 	
 	
