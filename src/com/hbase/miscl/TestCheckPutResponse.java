@@ -5,11 +5,15 @@ public class TestCheckPutResponse implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
+		int cnt=0;
 		try {
 			while(true)
 			{
-				Thread.sleep(2500);
-				System.out.println("The number of put responses after 5s are "+ TestPutAndGet.updateCounter(0));
+				Thread.sleep(1000);
+				System.out.println("The number of put responses after 1s are "+ TestPutAndGet.updateCounter(0));
+				cnt++;
+				if(cnt==20)
+					break;
 				
 			}
 			
