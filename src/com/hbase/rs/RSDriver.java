@@ -118,6 +118,17 @@ public class RSDriver implements IRegionServer {
 			int status = createTableHDFS(tableName);
 			
 			boolean success = (new File(tableName)).delete();
+			
+			if(regionMap.get(tableName) == null)
+			{
+				System.out.println("table not found");
+				
+				ArrayList<Region> arr = new ArrayList<>();
+				Region region = new Region(tableName, "0");
+				arr.add(region);
+				regionMap.put(tableName,arr);
+				
+			}
 		    
 			
 			res.setStatus(status);
@@ -146,13 +157,15 @@ public class RSDriver implements IRegionServer {
 		/** Put request will be written here
 		 * Some program will identify the region and give its reference
 		 *  **/
-		System.out.print("in put rs driber");
+		
 		
 		PutResponse.Builder res = PutResponse.newBuilder();
 		res.setStatus(Constants.STATUS_SUCCESS);
 		
 		try {
 			PutRequest req = PutRequest.parseFrom(inp);
+			
+			System.out.println("Request Received:  "+req.getRowkey() );
 			
 			String tableName = req.getTableName();
 			
@@ -175,7 +188,7 @@ public class RSDriver implements IRegionServer {
 //				System.out.println(regionMap.get(tableName));
 			}
 			
-			
+//			System.out.println("Done!!!!!!!!!!!!!!!!!!!!!" + req.getRowkey());
 		} catch (InvalidProtocolBufferException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -185,6 +198,8 @@ public class RSDriver implements IRegionServer {
 			res.setStatus(Constants.STATUS_FAILED);
 		}
 		
+		
+		
 		return res.build().toByteArray();
 	}
 
@@ -192,7 +207,7 @@ public class RSDriver implements IRegionServer {
 	public byte[] get(byte[] inp) throws RemoteException {
 		// TODO Auto-generated method stub
 		
-		System.out.print("in get rs driber");
+//		System.out.print("in get rs driber");
 		try {
 			GetRequest req = GetRequest.parseFrom(inp);
 			
