@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.Cell;
@@ -46,6 +47,7 @@ public class TestHBasePutThread implements Runnable{
 		
 		/* club all column families together */
 		HashMap<String, ArrayList<Column>> map = new HashMap<>();
+		
 		
 		for(int i=3;i<args.length;)
 		{
@@ -100,14 +102,15 @@ public class TestHBasePutThread implements Runnable{
 			PutResponse putResponse = PutResponse.parseFrom(res);
 			if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
 			{
-				System.out.println("Success");
+//				System.out.println("Success");
 				//increment the put response count to meausre the throughput
+				TestPutAndGet.updateCounter(1);
 				
 			}else
 			{
 				System.out.println("Failed");
 			}
-			TestPutAndGet.updateCounter(1);
+			
 		
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
