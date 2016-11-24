@@ -100,7 +100,7 @@ public class GetRow {
 		
 		try
 		{
-			System.out.print("searching in memstire "+store.memStore.get(rowKey).get(colFamily).get(colName).get(0).getColValue());
+			System.out.print("Search in memStore "+store.memStore.get(rowKey).get(colFamily).get(colName).get(0).getColValue());
 			return store.memStore.get(rowKey).get(colFamily).get(colName).get(0).getColValue();
 		}catch(NullPointerException e)
 		{
@@ -115,7 +115,7 @@ public class GetRow {
 		ListFile listFile = new ListFile(tableName+HBaseConstants.FILE_SEPARATOR+startKey);
 		List<String> listNames = listFile.list();
 		
-		System.out.println("List files"+listNames);
+//		System.out.println("List files"+listNames);
 		
 		List<HFile> hList = new ArrayList<>();
 		
@@ -130,16 +130,28 @@ public class GetRow {
 			hList.add(hFile);
 		}
 		
-		Collections.sort(hList, new Comparator<HFile>() {
+		hList.sort(new Comparator<HFile>(){
 
 			@Override
 			public int compare(HFile o1, HFile o2) {
 				// TODO Auto-generated method stub
-				return -(o1.timeStamp.compareTo(o2.timeStamp));  //descending order
-			}
-		});
+				
+				
+				return  o2.timeStamp.compareTo(o1.timeStamp) ; //descending order
+			} });
+		
 		
 		//search all hfiles in reverse order
+		
+//		System.out.print("After sorting"+hList);
+//		
+//		for(HFile list: hList)
+//		{
+//			System.out.println(list.fileName+" "+list.timeStamp);
+////			System.out.println(list.timeStamp);
+//			
+//		}
+		
 		
 		for(HFile list: hList)
 		{
@@ -172,7 +184,7 @@ public class GetRow {
 			
 			Integer offset = returnOffsetHFile(Constants.OUTPUT_FILE+indexFile, rowKey);
 			
-			System.out.println("Offset  to be read is"+offset);
+//			System.out.println("Offset  to be read is"+offset);
 			
 			if(offset!=-1)
 			{
@@ -193,6 +205,9 @@ public class GetRow {
 				}
 				
 			
+			}else
+			{
+				System.out.println("Index not found in "+Constants.OUTPUT_FILE+indexFile);
 			}
 			
 			
@@ -295,7 +310,7 @@ public class GetRow {
 			
 			Row rows = Row.parseFrom(data);
 			
-			System.out.println(rows);
+//			System.out.println(rows);
 			
 			
 			return rows.getColFamilyList();
