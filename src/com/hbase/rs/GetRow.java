@@ -109,7 +109,7 @@ public class GetRow {
 		
 	}
 	
-	String searchInHFile(String rowKey,String colFamil,String colName)
+	synchronized String searchInHFile(String rowKey,String colFamil,String colName)
 	{
 		
 		ListFile listFile = new ListFile(tableName+HBaseConstants.FILE_SEPARATOR+startKey);
@@ -279,7 +279,7 @@ public class GetRow {
 	}
 	
 	
-	List<ColumnFamily> getRowFromHFile(String fileName,Integer offset)
+	synchronized List<ColumnFamily> getRowFromHFile(String fileName,Integer offset)
 	{
 		 byte[] bs = new byte[8];
 		 FileInputStream fis = null;
