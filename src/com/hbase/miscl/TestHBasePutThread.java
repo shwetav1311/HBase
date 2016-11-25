@@ -101,7 +101,7 @@ public class TestHBasePutThread implements Runnable{
 			{
 //				System.out.println("Success");
 				//increment the put response count to meausre the throughput
-				TestPutAndGet.updatePutCounter(1);
+				TestPutAndGet.updatePutCounter(1,putRequest.build().toByteArray().length);
 				
 			}else
 			{
