@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.HashMap;
 
 import java.util.Map.Entry;
+import java.util.Vector;
+
 import com.hbase.miscl.TestCheckPutResponse;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.Cell;
@@ -31,8 +33,10 @@ public class TestPutAndGet implements Runnable {
 	public static String[] myCities;
 	public static String[] myStates;
 	public static String[] myDesignation;
-	public static Integer putResponseCounter = 0; 
+	public static Integer putResponseCounter = 0;
+	public static Integer putBytes = 0;
 	public static Integer getResponseCounter = 0;
+	public static Integer gettBytes = 0;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -116,6 +120,7 @@ public class TestPutAndGet implements Runnable {
 
 	}
 	
+	//get tablename rowkey colFamily:colName
 	public static void doGet(String tableName)
 	{
 		Thread t = new Thread(new TestCheckGetResponse());
@@ -129,11 +134,12 @@ public class TestPutAndGet implements Runnable {
 				StringBuilder myStringBuilder = new StringBuilder();
 				myStringBuilder = myStringBuilder.append("get "+tableName+" ");
 				myStringBuilder.append(String.valueOf(count)+" "); // row key
-				myStringBuilder.append("Address:State "+myStates[i]+" ");
+				myStringBuilder.append("Address:State ");
 //				myStringBuilder.append("Address:City "+myCities[i]+" ");
 //				myStringBuilder.append("Work:Designation "+myDesignation[i]+" ");
 //				System.out.println("calling put on ");
 //				System.out.println(myStringBuilder.toString());
+				
 				count++; // retrieve the next ROW ID by key
 				String str[] = myStringBuilder.toString().split(" ");
 				
@@ -171,7 +177,7 @@ public class TestPutAndGet implements Runnable {
 		
 		if(incr!=0)
 		{
-			putResponseCounter = putResponseCounter + incr;
+			putResponseCounter = putResponseCounter + incr;			
 			val=putResponseCounter;
 			
 		}
@@ -184,6 +190,33 @@ public class TestPutAndGet implements Runnable {
 //		System.out.println("response counter "+val);
 		
 		return val;
+	}
+	
+	public static synchronized Vector<Integer> updatePutCounter(Integer incr,Integer bytesWritten)
+	{
+		int val=putResponseCounter;
+		int size = putBytes;
+		Vector<Integer> myVector = new Vector<>();
+		
+		if(incr!=0)
+		{
+			putResponseCounter = putResponseCounter + incr;			
+			val=putResponseCounter;
+			size = putBytes;			
+		}
+		else
+		{
+			val=putResponseCounter;
+			size = putBytes;
+			putResponseCounter = 0;
+			putBytes = 0;
+		}
+		
+//		System.out.println("response counter "+val);
+		myVector.addElement(val);
+		myVector.addElement(size);
+		
+		return myVector;
 	}
 	
 	/** Get response Counter, increments on every get and resets by a thread **/
