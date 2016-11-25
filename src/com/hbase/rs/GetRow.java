@@ -278,8 +278,13 @@ public class GetRow {
 		
 	}
 	
-	
-	synchronized List<ColumnFamily> getRowFromHFile(String fileName,Integer offset)
+	/**
+	 * Remove synchronization and check
+	 * @param fileName
+	 * @param offset
+	 * @return
+	 */
+	synchronized List<ColumnFamily> getRowFromHFile(String fileName,Integer offset) 
 	{
 		 byte[] bs = new byte[8];
 		 FileInputStream fis = null;
