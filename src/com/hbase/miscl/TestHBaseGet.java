@@ -5,65 +5,53 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.Cell;
 import com.hbase.miscl.HBase.Column;
 import com.hbase.miscl.HBase.ColumnFamily;
-import com.hbase.miscl.HBase.PutRequest;
-import com.hbase.miscl.HBase.PutResponse;
+import com.hbase.miscl.HBase.GetRequest;
+import com.hbase.miscl.HBase.GetResponse;
 import com.hbase.rs.IRegionServer;
-import com.hbase.rs.PutRow;
 import com.hdfs.miscl.Constants;
 
-public class TestHBasePutThread implements Runnable{
+public class TestHBaseGet {
 
 	static IRegionServer rsStub;
 	String tableName;
 	String[] args;
 	
-	
 	@SuppressWarnings("static-access")
-	public TestHBasePutThread(IRegionServer rsStub,String tableName,String args[]) {
+	public TestHBaseGet(IRegionServer rsStub,String tableName,String[] args) {
 		// TODO Auto-generated constructor stub
 		this.rsStub = rsStub;
 		this.tableName = tableName;
-		this.args = args;		
+		this.args = args;
 	}
 	
 	
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		putTable(tableName, args);
-	}
-	
-	public static void putTable(String tableName,String[] args)
+	public void callGetMethod()
 	{
-		PutRequest.Builder putRequest = PutRequest.newBuilder();
-		putRequest.setTableName(tableName);
-		putRequest.setRowkey(args[2]);
+		getTable(tableName, args);
+	}
+	
+	
+	public static void getTable(String tableName,String[] args)
+	{
+		GetRequest.Builder getRequest = GetRequest.newBuilder();
+		getRequest.setTableName(tableName);
+		getRequest.setRowkey(args[2]);
 		
 		/* club all column families together */
 		HashMap<String, ArrayList<Column>> map = new HashMap<>();
 		
 		
-		for(int i=3;i<args.length;)
+		
+		for(int i=3;i<args.length;i++)
 		{
 			String[] col = args[i].split(":");
-			i++;
-			String value = args[i];
-			i++;
-			
 			Column.Builder column = Column.newBuilder();
 			column.setColName(col[1]);
-			
-			Cell.Builder cell = Cell.newBuilder();
-			cell.setColValue(value);
-			cell.setTimestamp(new Date().getTime());
-			
-			column.addCells(cell.build());
 			
 			if (map.get(col[0]) != null)
 			{
@@ -77,37 +65,40 @@ public class TestHBasePutThread implements Runnable{
 			
 		}
 		
-		
-		
-		
 		for (Entry<String, ArrayList<Column>> entry : map.entrySet())
 		{
-			
+			Cell.Builder cell = Cell.newBuilder();
+			cell.setTimestamp(new Date().getTime());
 			ColumnFamily.Builder cFamily = ColumnFamily.newBuilder();
 			cFamily.setName(entry.getKey());
 			cFamily.addAllColumns(entry.getValue());
-			
-			putRequest.addColFamily(cFamily);
-			
-		}
 
-		//put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’ 
+			getRequest.addColFamily(cFamily.build());
+
+		}
+		
 		
 		byte[] res;
 		try {
-			res = rsStub.put(putRequest.build().toByteArray());
-			PutResponse putResponse = PutResponse.parseFrom(res);
-			if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
+			res = rsStub.get(getRequest.build().toByteArray());
+			GetResponse getResponse = GetResponse.parseFrom(res);
+			
+			if(getResponse.getStatus()==Constants.STATUS_SUCCESS)
 			{
-//				System.out.println("Success");
-				//increment the put response count to meausre the throughput
-				TestPutAndGet.updatePutCounter(1,putRequest.build().toByteArray().length);
+				System.out.print("GET KEY SUCCESS");
+				System.out.println(getResponse.getColFamilyCount());
+				if(getResponse.getColFamilyCount()==0)
+				{
+					System.out.println("GET: KEY NOT FOUND");
+//					System.exit(0);
+					TestMaster.updateGetCounter(1);
+				}
 				
+				System.out.print(getResponse.getColFamily(0));
 			}else
 			{
-				System.out.println("Failed");
+				System.out.print("GET KEY FAILED");
 			}
-			
 		
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
@@ -119,7 +110,5 @@ public class TestHBasePutThread implements Runnable{
 		
 		
 	}
-	
-	
 
 }

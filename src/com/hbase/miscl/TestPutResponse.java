@@ -2,7 +2,7 @@ package com.hbase.miscl;
 
 import java.util.Vector;
 
-public class TestCheckPutResponse implements Runnable{
+public class TestPutResponse implements Runnable{
 
 	@Override
 	public void run() {
@@ -12,8 +12,8 @@ public class TestCheckPutResponse implements Runnable{
 			while(true)
 			{
 				Thread.sleep(1000);
-				Vector<Integer> throughputVec = TestPutAndGet.updatePutCounter(0, 0);
-				System.out.println("Number of put Responses: "+ throughputVec.get(0)+ " Number of bytes Written are "+throughputVec.get(1));
+				Vector<Integer> throughputVec = TestMaster.updatePutCounter(0, 0);
+				System.out.println("Put Response: "+ throughputVec.get(0)+ " Bytes Written: "+throughputVec.get(1));
 				cnt++;
 				if(cnt==20)
 					break;

@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.Vector;
-
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.Cell;
 import com.hbase.miscl.HBase.Column;
@@ -14,10 +12,9 @@ import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBase.PutResponse;
 import com.hbase.rs.IRegionServer;
-import com.hbase.rs.PutRow;
 import com.hdfs.miscl.Constants;
 
-public class TestHBasePutThread implements Runnable{
+public class TestHBasePut {
 
 	static IRegionServer rsStub;
 	String tableName;
@@ -25,20 +22,18 @@ public class TestHBasePutThread implements Runnable{
 	
 	
 	@SuppressWarnings("static-access")
-	public TestHBasePutThread(IRegionServer rsStub,String tableName,String args[]) {
+	public TestHBasePut(IRegionServer rsStub,String tableName,String args[]) {
 		// TODO Auto-generated constructor stub
 		this.rsStub = rsStub;
 		this.tableName = tableName;
 		this.args = args;		
 	}
 	
-	
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		putTable(tableName, args);
+	void callPutMethod()
+	{
+		putTable(tableName,args);
 	}
-	
+		
 	public static void putTable(String tableName,String[] args)
 	{
 		PutRequest.Builder putRequest = PutRequest.newBuilder();
@@ -101,7 +96,7 @@ public class TestHBasePutThread implements Runnable{
 			{
 //				System.out.println("Success");
 				//increment the put response count to meausre the throughput
-				TestPutAndGet.updatePutCounter(1,putRequest.build().toByteArray().length);
+				TestMaster.updatePutCounter(1,putRequest.build().toByteArray().length);
 				
 			}else
 			{
