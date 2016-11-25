@@ -10,7 +10,7 @@ public class TestCheckPutResponse implements Runnable{
 			while(true)
 			{
 				Thread.sleep(1000);
-				System.out.println("The number of put responses after 1s are "+ TestPutAndGet.updateCounter(0));
+				System.out.println("The number of put responses after 1s are "+ TestPutAndGet.updatePutCounter(0));
 				cnt++;
 				if(cnt==20)
 					break;

@@ -32,6 +32,7 @@ public class TestPutAndGet implements Runnable {
 	public static String[] myStates;
 	public static String[] myDesignation;
 	public static Integer putResponseCounter = 0; 
+	public static Integer getResponseCounter = 0;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -74,14 +75,19 @@ public class TestPutAndGet implements Runnable {
 			e1.printStackTrace();
 		}
 //		
+		doPut(tableName);	
+				
+		doGet(tableName);
+		
 			
+	}
+	
+	public static void doPut(String tableName)
+	{
 		initializeData();
 		
 		Thread t = new Thread(new TestCheckPutResponse());
 		t.start();
-		
-		
-//		
 		
 		int cnt=0;
 		for(int j=0;j<30;j++)
@@ -103,26 +109,45 @@ public class TestPutAndGet implements Runnable {
 				Thread t1 = new Thread(new TestHBasePutThread(rsStub, tableName, str));
 				t1.start();
 				
-				
+//				System.out.println(" ----------------------------------------------------------------- ");
+//				System.out.println();
+			}
+		}
 
+	}
+	
+	public static void doGet(String tableName)
+	{
+		Thread t = new Thread(new TestCheckGetResponse());
+		t.start();
+		
+		int count = 0;
+		for(int j=0;j<30;j++)
+		{
+			for(int i =0;i<myCities.length;i++)
+			{
+				StringBuilder myStringBuilder = new StringBuilder();
+				myStringBuilder = myStringBuilder.append("get "+tableName+" ");
+				myStringBuilder.append(String.valueOf(count)+" "); // row key
+				myStringBuilder.append("Address:State "+myStates[i]+" ");
+//				myStringBuilder.append("Address:City "+myCities[i]+" ");
+//				myStringBuilder.append("Work:Designation "+myDesignation[i]+" ");
+//				System.out.println("calling put on ");
+//				System.out.println(myStringBuilder.toString());
+				count++; // retrieve the next ROW ID by key
+				String str[] = myStringBuilder.toString().split(" ");
+				
+				
+				Thread t1 = new Thread(new TestHBaseGetThread(rsStub, tableName, str));
+				t1.start();
 				
 //				System.out.println(" ----------------------------------------------------------------- ");
 //				System.out.println();
 			}
-			
-//			try {
-//				Thread.sleep(500);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
 		}
-		
-		
-		
-			
 	}
 	
+	/**Initializes Data for simulating Put **/
 	public static void initializeData()
 	{
 		
@@ -139,7 +164,8 @@ public class TestPutAndGet implements Runnable {
 		}
 	}
 	
-	public static synchronized Integer updateCounter(Integer incr)
+	/** Put response Counter, increments on every put and resets by a thread **/
+	public static synchronized Integer updatePutCounter(Integer incr)
 	{
 		int val=putResponseCounter;
 		
@@ -153,6 +179,28 @@ public class TestPutAndGet implements Runnable {
 		{
 			val=putResponseCounter;
 			putResponseCounter = 0;
+		}
+		
+//		System.out.println("response counter "+val);
+		
+		return val;
+	}
+	
+	/** Get response Counter, increments on every get and resets by a thread **/
+	public static synchronized Integer updateGetCounter(Integer incr)
+	{
+		int val=getResponseCounter;
+		
+		if(incr!=0)
+		{
+			getResponseCounter = getResponseCounter + incr;
+			val=getResponseCounter;
+			
+		}
+		else
+		{
+			val=getResponseCounter;
+			getResponseCounter = 0;
 		}
 		
 //		System.out.println("response counter "+val);
@@ -197,6 +245,7 @@ public class TestPutAndGet implements Runnable {
 		
 	}
 
+	//put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’
 	public static void putTable(String tableName,String[] args)
 	{
 		PutRequest.Builder putRequest = PutRequest.newBuilder();
@@ -277,7 +326,7 @@ public class TestPutAndGet implements Runnable {
 		
 		
 	}
-// put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’
+
 	public static void getTable(String tableName,String[] args)
 	{
 		GetRequest.Builder getRequest = GetRequest.newBuilder();

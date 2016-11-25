@@ -91,9 +91,6 @@ public class TestHBasePutThread implements Runnable{
 			
 		}
 
-	
-		
-		
 		//put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’ 
 		
 		byte[] res;
@@ -104,7 +101,7 @@ public class TestHBasePutThread implements Runnable{
 			{
 //				System.out.println("Success");
 				//increment the put response count to meausre the throughput
-				TestPutAndGet.updateCounter(1);
+				TestPutAndGet.updatePutCounter(1);
 				
 			}else
 			{
