@@ -13,10 +13,10 @@ public class TestPutResponse implements Runnable{
 			{
 				Thread.sleep(1000);
 				Vector<Integer> throughputVec = TestMaster.updatePutCounter(0, 0);
-				System.out.println("Put Response: "+ throughputVec.get(0)+ " Bytes Written: "+throughputVec.get(1));
+				System.out.println("PReq: "+ throughputVec.get(0)+ " Data: "+throughputVec.get(1));
 				cnt++;
-				if(cnt==20)
-					break;
+//				if(cnt==20)
+//					break;
 				
 			}
 			

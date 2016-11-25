@@ -85,16 +85,16 @@ public class TestHBaseGet {
 			
 			if(getResponse.getStatus()==Constants.STATUS_SUCCESS)
 			{
-				System.out.print("GET KEY SUCCESS");
-				System.out.println(getResponse.getColFamilyCount());
+//				System.out.print("GET KEY SUCCESS");
+//				System.out.println(getResponse.getColFamilyCount());
 				if(getResponse.getColFamilyCount()==0)
 				{
-					System.out.println("GET: KEY NOT FOUND");
+//					System.out.println("GET: KEY NOT FOUND");
 //					System.exit(0);
-					TestMaster.updateGetCounter(1);
 				}
+				TestMaster.updateGetCounter(1,getResponse.toByteArray().length);
 				
-				System.out.print(getResponse.getColFamily(0));
+//				System.out.print(getResponse.getColFamily(0));
 			}else
 			{
 				System.out.print("GET KEY FAILED");

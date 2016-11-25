@@ -4,7 +4,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-
+import java.util.Random;
 
 import com.hbase.miscl.TestPutResponse;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -24,6 +24,7 @@ public class TestPutGet implements Runnable {
 	private Integer clientID; // this is used to generate key numbers
 	private Integer noOfOps; // this is used to decide on no of put or get
 	private Integer choice; // this is used to tell whether you are looking at put or get
+	private static boolean flag = false;
 	
 	TestPutGet(int clientID,int noOfOps,int choice)
 	{
@@ -64,14 +65,7 @@ public class TestPutGet implements Runnable {
 			} 	
 		
 		String tableName = "MyCountry";
-		System.out.println("HBase System Test: put ");
 		
-		System.out.println("Calling create table ");
-		String[] createTable ={"create",tableName,"Address"};
-		System.out.println(createTable[0]+" "+createTable[1]+" "+createTable[2]);
-		System.out.println(" ----------------------------------------------------------------- ");
-		System.out.println();
-		createTable(tableName, createTable);
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e1) {
@@ -89,16 +83,19 @@ public class TestPutGet implements Runnable {
 			
 	}
 	
-	public static void doPut(String tableName,int noOfOps)
+	public  void doPut(String tableName,int noOfOps)
 	{
 		
 		
 		Thread t = new Thread(new TestPutResponse());
 		t.start();
 		
-		int cnt=0;
+		
+		int end = (clientID*noOfOps) + noOfOps;
+		int cnt=clientID*noOfOps;
+		
 		int i =0;
-		while(cnt<noOfOps)
+		while(cnt<end)
 		{
 			StringBuilder myStringBuilder = new StringBuilder();
 			myStringBuilder = myStringBuilder.append("put "+tableName+" ");
@@ -123,15 +120,17 @@ public class TestPutGet implements Runnable {
 	}
 	
 	//get tablename rowkey colFamily:colName
-	public static void doGet(String tableName,int noOfOps)
+	public  void doGet(String tableName,int noOfOps)
 	{
 		Thread t = new Thread(new TestGetResponse());
 		t.start();
 		
-		int count = 0;
 		int i = 0;
 		
-		while(count<noOfOps)
+		int end = (clientID*noOfOps) + noOfOps;
+		int count=clientID*noOfOps;
+		
+		while(count<end)
 		{		
 			StringBuilder myStringBuilder = new StringBuilder();
 			myStringBuilder = myStringBuilder.append("get "+tableName+" ");
@@ -157,10 +156,16 @@ public class TestPutGet implements Runnable {
 		
 		Integer count = 1;
 		
+		
+		
+		
 		myCities = new String[] {"Bangalore","Pune","Delhi","Madras","Ahmedabad","Jaipur","Bikaner","Mumbai","Saurashtra","Chandigarh","Pondicherry","Lucknow","Panjim","Kolkata","Indore"};
 		myStates = new String[] {"Karnataka","Maharashtra","Delhi","TamilNadu","Gujarat","Gujarat","Rajastan","Maharashtra","Gujarat","Chandigarh","Pondicherry","UttarPradesh","Goa","WestBengal","MadhyaPradesh"};
 		for(int i=0;i<15;i++)
 		{
+			myCities[i] = TestMaster.myString;
+			myStates[i] = TestMaster.myString;
+			
 			myDesignation[i] = "SC"+count.toString();
 			count++;
 		}

@@ -114,7 +114,7 @@ public class MemStore {
 			}
 			
 		}
-		incrementCount(1);
+		incrementCount(dataIn.toByteArray().length);
 		
 
 	}
@@ -181,7 +181,15 @@ public class MemStore {
 	
 	synchronized boolean  isMemStoreFull(int input_size)
 	{
-		return input_size>HBaseConstants.MEMSTORE_CONTENTS;
+//		return input_size>HBaseConstants.MEMSTORE_CONTENTS;
+		
+		if(input_size > (Constants.BLOCK_SIZE*0.8))
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
 		
 	}
 	

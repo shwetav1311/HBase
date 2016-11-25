@@ -73,7 +73,7 @@ public class GetRow {
 				}
 			}
 			
-			System.out.println("found "+val);
+//			System.out.println("found "+val);
 			ColumnFamily.Builder ansCFamily = ColumnFamily.newBuilder();
 			ansCFamily.setName(colFamilyName);
 
@@ -86,7 +86,7 @@ public class GetRow {
 			ansCFamily.addColumns(ansColumn);
 			columnFamilies.add(ansCFamily.build());
 			
-			System.out.println(columnFamilies);
+//			System.out.println(columnFamilies);
 			
 		}
 		
@@ -115,7 +115,7 @@ public class GetRow {
 		ListFile listFile = new ListFile(tableName+HBaseConstants.FILE_SEPARATOR+startKey);
 		List<String> listNames = listFile.list();
 		
-//		System.out.println("List files"+listNames);
+		System.out.println("List files"+listNames);
 		
 		List<HFile> hList = new ArrayList<>();
 		
@@ -155,32 +155,33 @@ public class GetRow {
 		
 		for(HFile list: hList)
 		{
-			GetFile getFile  = new GetFile(list.fileName, Constants.OUTPUT_FILE+list.fileName);
-			
-			Thread thread = new Thread(getFile);
-			thread.start();
-			
-			try {
-				thread.join();  //waits for thread to get over
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			
 			String indexFile = "index_"+list.fileName;
 			
-			GetFile getFile1 = new GetFile(indexFile, Constants.OUTPUT_FILE+indexFile);
 			
-			
-			Thread thread1 = new Thread(getFile1);
-			thread1.start();
-			
-			try {
-				thread1.join();  //waits for thread to get over
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			File f = new File(Constants.OUTPUT_FILE+indexFile);
+			if(f.exists()) { 
+			    // do something
+				
+//				System.out.println("Index file Already There "+indexFile);
+			}else
+			{
+				GetFile getFile1 = new GetFile(indexFile, Constants.OUTPUT_FILE+indexFile);
+				Thread thread1 = new Thread(getFile1);
+				thread1.start();
+				
+				try {
+					thread1.join();  //waits for thread to get over
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+			
+			
+			
+			
+		
 			
 			Integer offset = returnOffsetHFile(Constants.OUTPUT_FILE+indexFile, rowKey);
 			
@@ -188,6 +189,30 @@ public class GetRow {
 			
 			if(offset!=-1)
 			{
+				
+				File f1 = new File(Constants.OUTPUT_FILE+list.fileName);
+				if(f1.exists()) { 
+				    // do something
+//					System.out.println("Already There");
+					
+				}else
+				{
+					GetFile getFile  = new GetFile(list.fileName, Constants.OUTPUT_FILE+list.fileName);
+					
+					Thread thread = new Thread(getFile);
+					thread.start();
+					
+					try {
+						thread.join();  //waits for thread to get over
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+				
+				
+				
 				List<ColumnFamily> cFamily = getRowFromHFile(Constants.OUTPUT_FILE+list.fileName, offset);
 				
 				for(ColumnFamily c : cFamily)
@@ -284,7 +309,7 @@ public class GetRow {
 	 * @param offset
 	 * @return
 	 */
-	synchronized List<ColumnFamily> getRowFromHFile(String fileName,Integer offset) 
+	List<ColumnFamily> getRowFromHFile(String fileName,Integer offset) 
 	{
 		 byte[] bs = new byte[8];
 		 FileInputStream fis = null;

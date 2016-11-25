@@ -1,5 +1,7 @@
 package com.hbase.miscl;
 
+import java.util.Vector;
+
 public class TestGetResponse implements Runnable{
 
 	@Override
@@ -10,10 +12,11 @@ public class TestGetResponse implements Runnable{
 			while(true)
 			{
 				Thread.sleep(1000);
-				System.out.println("The number of get responses after 1s are "+ TestMaster.updateGetCounter(0));
+				Vector<Integer> throughputVec = TestMaster.updateGetCounter(0, 0);
+				System.out.println("GReq: "+ throughputVec.get(0)+ " Data: "+throughputVec.get(1));
 				cnt++;
-				if(cnt==20)
-					break;
+//				if(cnt==20)
+//					break;
 				
 			}
 			
