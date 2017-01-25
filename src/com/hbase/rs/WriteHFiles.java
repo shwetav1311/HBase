@@ -25,10 +25,12 @@ import com.hbase.miscl.Converter;
 import com.hbase.miscl.HBaseConstants;
 import com.hdfs.miscl.PutFile;
 
-public class WriteHFiles {
+public class WriteHFiles extends Thread{
 	
 	public static TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > memStore;
 	public long blockNumber; 
+	
+	public String tableName,start,end;
 	
 	public WriteHFiles(TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore,long blockNum) {
 		// TODO Auto-generated constructor stub
@@ -36,9 +38,15 @@ public class WriteHFiles {
 		blockNumber = blockNum;
 	}
 	
+	public void set(String tableName,String start, String end)
+	{
+		this.tableName=tableName;
+		this.start = start;
+		this.end = end;
+	}
 	
 	
-	public void write(String tableName,String start, String end)
+	public void run()
 	{
 		/** get all the values in sorted order **/
 			
