@@ -138,8 +138,11 @@ public class MemStore {
 	private  void writeToHFile() {
 		// TODO Auto-generated method stub
 			WriteHFiles myObj = new WriteHFiles(tempStore,getTimeStamp());
+			myObj.set(tableName,startKey,endKey);
+//			myObj.r
+			Thread t = new  Thread(myObj);
+			t.start();
 			
-			myObj.write(tableName,startKey,endKey);
 	}
 
 	private static TreeMap<String, TreeMap<String, List<Cell>>> insertNewColumnFamily(ColumnFamily columnFamily,TreeMap<String, TreeMap<String, List<Cell> > > colFamilyMap ) {

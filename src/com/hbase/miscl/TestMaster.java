@@ -27,13 +27,26 @@ public class TestMaster {
 	{
 		int noOfClients = 10;
 		int choice = 1; //put or get
-		int noOfOps = 25000;
+		int noOfOps = 2500;
 		
 		
 		
 		createTableNew();
 		
 		prepareString();
+		
+		
+		if(choice==0)
+		{
+			Thread t = new Thread(new TestPutResponse());
+			t.start();
+		}else
+		{
+			Thread t = new Thread(new TestGetResponse());
+			t.start();
+			
+		}
+		
 		
 		
 		for(int i=0;i<noOfClients;i++)

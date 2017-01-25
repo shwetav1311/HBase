@@ -87,8 +87,6 @@ public class TestPutGet implements Runnable {
 	{
 		
 		
-		Thread t = new Thread(new TestPutResponse());
-		t.start();
 		
 		
 		int end = (clientID*noOfOps) + noOfOps;
@@ -122,8 +120,6 @@ public class TestPutGet implements Runnable {
 	//get tablename rowkey colFamily:colName
 	public  void doGet(String tableName,int noOfOps)
 	{
-		Thread t = new Thread(new TestGetResponse());
-		t.start();
 		
 		int i = 0;
 		

@@ -30,7 +30,10 @@ public class ClientDriver {
 	
 	hbase> create ’tablename’, 'cfname','cfname'   
 	//Use ‘put’ to insert data into the table
-	hbase> put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’ 
+	hbase> put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’
+	
+	 put 'Employee' '1' 'Address:City' 'Pune'
+	 ./client.sh get 'Employee' '1' 'Address:City'
 	//To get row data with rowkey	
 	hbase> get ’tablename’, ’rowkey’ , 'cfname:colName'	...	
 	
