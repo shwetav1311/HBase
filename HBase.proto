@@ -1,4 +1,4 @@
-	syntax = "proto2";
+syntax = "proto2";
 
 message Cell
 {
@@ -63,7 +63,7 @@ message GetResponse
 
 message Row
 {
-	optional int32 rowID = 1; // else our rabdi will cry :D and her instinct thingy
+	optional string rowID = 1; // else our rabdi will cry :D and her instinct thingy
 	repeated ColumnFamily colFamily=2;
 }
 
@@ -78,3 +78,11 @@ message IndexList
 	repeated IndexEntry index = 1;
 }
 
+
+message WalEntry
+{
+	//followed by 8 bit field in the beginning
+	optional string seqID = 1;
+	optional string rsID = 2;
+	optional PutRequest logEntry = 3;
+}
