@@ -74,10 +74,39 @@ public class WAL {
 			int size = walEntry.build().toByteArray().length;
 			size = size + 8;
 			
-			byte[] dataOut = new byte[size];
 			
-			 
-			appendObj.append(walFname, walEntry.build().toByteArray());
+			Integer length = walEntry.build().toByteArray().length;			
+			String hexNumber = Integer.toHexString(length);
+			
+			//This is just to prefix something with 0s in case the length doesnt go upto 8 bytes
+			/***************************************************************************/
+			if(hexNumber.length()<8)
+			{
+				int prefix = 8 - hexNumber.length();
+				String temp = "";
+				while(prefix>0)
+				{
+					temp = temp + "0";
+					prefix--;
+				}			
+				hexNumber = temp + hexNumber;
+			}
+			/***************************************************************************/
+			
+			byte[] first8Bytes = new byte[8];
+			byte[] data = new byte[size];
+			
+			System.arraycopy(hexNumber.getBytes(), 0, first8Bytes, 0, 8);
+			System.arraycopy(walEntry.build().toByteArray(), 0, data, 0, length);
+			
+			//http://stackoverflow.com/questions/5513152/easy-way-to-concatenate-two-byte-arrays
+			byte[] binDataOut = new byte[first8Bytes.length + data.length];
+			
+			System.arraycopy(first8Bytes, 0, binDataOut, 0, first8Bytes.length);
+			System.arraycopy(data, 0, binDataOut, first8Bytes.length, data.length);
+			
+			
+			appendObj.append(walFname, binDataOut);
 			
 		} catch (InvalidProtocolBufferException e) {
 			
