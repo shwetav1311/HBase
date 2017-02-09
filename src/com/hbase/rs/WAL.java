@@ -1,9 +1,13 @@
 package com.hbase.rs;
 
+import java.io.File;
+import java.io.IOException;
+
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBase.WalEntry;
 import com.hdfs.miscl.AppendFile;
+import com.hdfs.miscl.PutFile;
 
 public class WAL {
 
@@ -29,7 +33,25 @@ public class WAL {
 		/**
 		 * Code plug-in needed 
 		 */
+		File localWAL = new File(walFname);
 		
+		
+		try 
+		{
+			if(localWAL.exists()==false)
+				localWAL.createNewFile();
+		} 
+		catch (IOException e1) {
+			
+			e1.printStackTrace();
+		}
+		
+		PutFile cWAL = new PutFile(walFname);
+		Thread thread = new Thread(cWAL);
+		thread.start();
+		
+		
+		System.out.println("Empty file created");
 		
 	}
 	
@@ -49,6 +71,12 @@ public class WAL {
 			putObj = PutRequest.parseFrom(dataIn);			
 			walEntry.setLogEntry(putObj);
 			
+			int size = walEntry.build().toByteArray().length;
+			size = size + 8;
+			
+			byte[] dataOut = new byte[size];
+			
+			 
 			appendObj.append(walFname, walEntry.build().toByteArray());
 			
 		} catch (InvalidProtocolBufferException e) {
