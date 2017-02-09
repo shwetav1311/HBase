@@ -1,12 +1,6 @@
 package com.hdfs.miscl;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -34,22 +28,28 @@ import com.hdfs.namenode.INameNode;
  *	Done waste body -_-  
  *
  */
-public class AppendFile implements Runnable {
+public class AppendFile  {
 	
-	public static String fileName;
 	
-	public AppendFile(String fileNameArgs) {
+	public AppendFile()
+	{
 		
-		fileName = fileNameArgs;
-	}
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		appendTesting();
 	}
 	
-	public static void appendTesting()
+	public void append(String fileName,byte[] appendData)
+	{
+		
+		Thread thread = new Thread() {
+	        public void run() {
+
+	        	appendThread(fileName,appendData);
+	        }
+	    };
+		
+	    thread.start();
+	}
+	
+	public void appendThread(String fileName,byte[] appendData) 
 	{
 		OpenFileRequest.Builder openFileReqObj = OpenFileRequest.newBuilder();
 		openFileReqObj.setFileName(fileName);
@@ -60,7 +60,7 @@ public class AppendFile implements Runnable {
 		try {
 			Registry registry = LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			INameNode nameStub;
-			
+			int status;
 			nameStub = (INameNode) registry.lookup(Constants.NAME_NODE);
 			byte[] responseArray = nameStub.openFile(openFileReqObj.build().toByteArray());
 			
@@ -76,9 +76,9 @@ public class AppendFile implements Runnable {
 				System.exit(0);
 			}
 			
-//			List<String> blockNums = responseObj.getBlockNumsList();
-//			String last_blocknum=blockNums.get(0);
-//			String newBlockNum = responseObj.getNewBlockNum();		
+			List<String> blockNums = responseObj.getBlockNumsList();
+			String last_blocknum=blockNums.get(0);
+			String newBlockNum = responseObj.getNewBlockNum();		
 			
 			int size=(int) responseObj.getSize();
 			System.out.println("size of the file is "+size);
@@ -86,19 +86,20 @@ public class AppendFile implements Runnable {
 			int remainSize=(Constants.BLOCK_SIZE)-size;//1,000,000 - 841
 			
 			System.out.println("The remaining size  is "+remainSize);
-		    BufferedReader breader = null;
-		    breader = new BufferedReader(new FileReader("test.txt") );
-		    File myFile = new File("test.txt");
+//		    BufferedReader breader = null;
+//		    breader = new BufferedReader(new FileReader(appendFile) );
+//		    File myFile = new File(appendFile);
 		    int bytesToRead = 0;
-		    if(myFile.exists())
-		    {
-		      bytesToRead = (int)myFile.length();
-		    }
+//		    if(myFile.exists())
+//		    {
+//		      bytesToRead = (int)myFile.length();
+//		    }
 		    
+			bytesToRead = appendData.length;
 		    /*Handles all cases */
-		    sendFileAsAppendCaseThree(responseObj,remainSize,bytesToRead);
+		    sendFileAsAppendCaseThree(responseObj,remainSize,bytesToRead,appendData);
 		    
-		    breader.close();
+//		    breader.close();
 		      
 			
 			
@@ -106,9 +107,6 @@ public class AppendFile implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidProtocolBufferException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -125,8 +123,10 @@ public class AppendFile implements Runnable {
 	 * so new append blocks have to be sent
 	 * 1. append last block
 	 * 2. ask for new assign blocks
+	 * @param appendData 
 	 */
-	private static void sendFileAsAppendCaseThree(OpenFileResponse resObj,int remainSize,int totalBytes) {
+	
+	private static void sendFileAsAppendCaseThree(OpenFileResponse resObj,int remainSize,int totalBytes, byte[] appendData) {
 		// TODO Auto-generated method stub
 		/**
 		 * 1. prepare a write block request, for that get block locations 
@@ -155,7 +155,7 @@ public class AppendFile implements Runnable {
 		try
 		{
 			
-			InputStream in = new FileInputStream("test.txt");
+//			InputStream in = new FileInputStream(appendFile);
 			Registry registry = LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			nameStub = (INameNode) registry.lookup(Constants.NAME_NODE);
 
@@ -181,13 +181,25 @@ public class AppendFile implements Runnable {
 
 			//read data of size remain size
 
-			in.read(firstData, 0, remainSize);
+//			in.read(firstData, 0, remainSize);
+			
+			for(int i=0;i<remainSize;i++)
+			{
+				firstData[i]=appendData[i];
+			}
 
 			writeReqObj.setBlockInfo(lastBlock); // added the details of last blocks
 			writeReqObj.setIsAppend(true);
 			writeReqObj.setNewBlockNum(resObj.getNewBlockNum());
 			writeReqObj.setCount(0);
-			writeReqObj.addData(ByteString.copyFrom(firstData));// initial set of data is sent
+			
+			
+			for(int j=0;j<firstData.length;j++)
+			{
+				writeReqObj.addData(ByteString.copyFrom(firstData,j,1));
+			}
+			
+		//	writeReqObj.addData(ByteString.copyFrom(firstData));// initial set of data is sent
 
 
 			List<BlockLocations> blockLocations =  myResponse.getBlockLocationsList();				
@@ -234,10 +246,10 @@ public class AppendFile implements Runnable {
 			
 			if(amountBytesRemaining>0)
 			{
-				success = sendRemainingBytesAppend(resObj,amountBytesRemaining,nameStub,in);
+				success = sendRemainingBytesAppend(resObj,amountBytesRemaining,nameStub,remainSize,appendData);
 			}
 
-			in.close();//close the file
+		//	in.close();//close the file
 			
 			
 
@@ -270,17 +282,21 @@ public class AppendFile implements Runnable {
 				e.printStackTrace();
 			}
 		}
-				
+		
+		
 				
 	}
 	
+	
 	/**method to send remaining bytes as one by one in blocks
 	 * @return **/
+	
 	private static boolean sendRemainingBytesAppend(OpenFileResponse resObj, int amountBytesRemaining, INameNode nameStub,
-			InputStream in) {
+			int  remainSize,byte[] appendData) {
 		// TODO Auto-generated method stub
 	
 		System.out.println("Sending new block");
+		int i=remainSize;
 		
 		while(amountBytesRemaining>0)
 		{
@@ -333,14 +349,25 @@ public class AppendFile implements Runnable {
 				
 				byte[] data = new byte[sendBytes];
 				
-				in.read(data, 0, sendBytes);
+				//in.read(data, 0, sendBytes);
+				for(int j=0;j<sendBytes;j++)
+				{
+					data[j]=appendData[i++];
+				}
 				
 				WriteBlockRequest.Builder writeBlkReq = WriteBlockRequest.newBuilder();
 				writeBlkReq.setCount(0);
 				writeBlkReq.setIsAppend(true);
 				writeBlkReq.setNewBlockNum("-1");
 				writeBlkReq.setBlockInfo(thisBlock);
-				writeBlkReq.addData(ByteString.copyFrom(data));
+				
+				
+				for(int j=0;j<data.length;j++)
+				{
+					writeBlkReq.addData(ByteString.copyFrom(data, j, 1));
+				}
+				
+//				writeBlkReq.addData(ByteString.copyFrom(data));
 				
 				byte[] writeReqResponse = dataStub.writeBlock(writeBlkReq.build().toByteArray());
 				WriteBlockResponse writeBlkRes = WriteBlockResponse.parseFrom(writeReqResponse);
@@ -369,7 +396,6 @@ public class AppendFile implements Runnable {
 		
 		return true;
 		
-	}
-	
+	}	
 	
 }
