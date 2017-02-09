@@ -12,6 +12,8 @@ public final class HBaseConstants {
 	public static final String  INDEX_PREFIX = "index";
 	public static final String TIMESTAMP_GEN = "TimestampGen";
 	public static final long MEMSTORE_CONTENTS = 24999;
+	public static final String REGION_SERVER = "RS_";
+	public static final String WAL_SUFFIX = "_WAL";
 
 	
 

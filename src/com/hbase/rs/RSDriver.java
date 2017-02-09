@@ -1,8 +1,11 @@
 package com.hbase.rs;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.rmi.RemoteException;
@@ -29,14 +32,19 @@ public class RSDriver implements IRegionServer {
 	
 	
 	static int id;
-	
+	static int numBlock = 0;
 	//map to store table to Region mapping
 	
 	static HashMap<String,ArrayList<Region>> regionMap;
-	
+	static WAL walObj;
 	
 	public static void main(String[] args)
 	{
+		
+		/** WAL object, with WAL file Name **/
+		walObj = new WAL(HBaseConstants.REGION_SERVER+id+HBaseConstants.WAL_SUFFIX);
+		
+		walObj.createFile();
 		
 		regionMap = new HashMap<>();
 		
@@ -155,8 +163,13 @@ public class RSDriver implements IRegionServer {
 	public byte[] put(byte[] inp) throws RemoteException {
 		// TODO Auto-generated method stub
 		/** Put request will be written here
-		 * Some program will identify the region and give its reference
+		 * 	Some program will identify the region and give its reference
 		 *  **/
+		
+		/** Generate next Sequence ID **/
+		int seqID = getBlockNum();
+		
+		/**Write into WAL**/
 		
 		
 		PutResponse.Builder res = PutResponse.newBuilder();
@@ -185,10 +198,11 @@ public class RSDriver implements IRegionServer {
 			}else
 			{
 				regionMap.get(tableName).get(0).insertRow(req);
-//				System.out.println(regionMap.get(tableName));
+
 			}
+
+			appendIntoWAL(seqID+"", HBaseConstants.REGION_SERVER+id+"",inp);
 			
-//			System.out.println("Done!!!!!!!!!!!!!!!!!!!!!" + req.getRowkey());
 		} catch (InvalidProtocolBufferException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -203,11 +217,21 @@ public class RSDriver implements IRegionServer {
 		return res.build().toByteArray();
 	}
 
+	/**
+	 * 
+	 * @param seqID
+	 * @param RSID
+	 * @param dataIn
+	 */
+	private void appendIntoWAL(String seqID, String RSID, byte[] dataIn) {
+		// TODO Auto-generated method stub
+		walObj.appendToHDFS(seqID,RSID,dataIn);
+	}
+
 	@Override
 	public byte[] get(byte[] inp) throws RemoteException {
 		// TODO Auto-generated method stub
 		
-//		System.out.print("in get rs driber");
 		try {
 			GetRequest req = GetRequest.parseFrom(inp);
 			
@@ -273,7 +297,43 @@ public class RSDriver implements IRegionServer {
 		
 	}
 	
+	/**
+	 * Generate Sequence ID
+	 */
+	public static synchronized int getBlockNum()
+	{
+		try {
+			
+			BufferedReader buff = new BufferedReader(new FileReader(Constants.BLOCK_NUM_FILE));
+			String line=buff.readLine();
+			buff.close();
+			
+			Integer num = Integer.parseInt(line);
+			num++;
+			PrintWriter pw;
+			try {
+				pw = new PrintWriter(new FileWriter(Constants.BLOCK_NUM_FILE));
+			    pw.write(num.toString());
+		        pw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return num-1;
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ++numBlock;
+	}
 	
+	/**
+	 * @author master
+	 */
 	public void createRegions()
 	{
 		
