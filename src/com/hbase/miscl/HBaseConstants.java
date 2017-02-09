@@ -14,6 +14,7 @@ public final class HBaseConstants {
 	public static final long MEMSTORE_CONTENTS = 24999;
 	public static final String REGION_SERVER = "RS_";
 	public static final String WAL_SUFFIX = "_WAL";
+	public static final String SEQ_ID_FILE = "SeqID";
 
 	
 

@@ -32,11 +32,15 @@ public class RSDriver implements IRegionServer {
 	
 	
 	static int id;
-	static int numBlock = 0;
+	static int seqID = 0; 
+	
+	/* why the naming is numblock ?? clearly we are not dealing with blocks 
+	 * Also we can put the code in WAL class so that we separate RegionServer tasks and wal tasks.
+	 * */
 	//map to store table to Region mapping
 	
 	static HashMap<String,ArrayList<Region>> regionMap;
-	static WAL walObj;
+	static WAL walObj; 
 	
 	public static void main(String[] args)
 	{
@@ -167,7 +171,7 @@ public class RSDriver implements IRegionServer {
 		 *  **/
 		
 		/** Generate next Sequence ID **/
-		int seqID = getBlockNum();
+		int seqID = getSeqID();
 		
 		/**Write into WAL**/
 		
@@ -279,7 +283,7 @@ public class RSDriver implements IRegionServer {
 	
 	public static int createTableHDFS(String filename)
 	{
-		PutFile putFile = new PutFile(filename,filename);
+		PutFile putFile = new PutFile(filename);
 		Thread thread1 = new Thread(putFile);
 		thread1.start();
 		try {
@@ -300,7 +304,7 @@ public class RSDriver implements IRegionServer {
 	/**
 	 * Generate Sequence ID
 	 */
-	public static synchronized int getBlockNum()
+	public static synchronized int getSeqID()
 	{
 		try {
 			
@@ -328,7 +332,7 @@ public class RSDriver implements IRegionServer {
 			e.printStackTrace();
 		}
 		
-		return ++numBlock;
+		return ++seqID;
 	}
 	
 	/**
@@ -337,6 +341,23 @@ public class RSDriver implements IRegionServer {
 	public void createRegions()
 	{
 		
+	}
+
+	@Override
+	public boolean loadRegion(String tableName) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+		if(regionMap.get(tableName) == null)
+		{
+			ArrayList<Region> arr = new ArrayList<>();
+			Region region = new Region(tableName, "0");
+			arr.add(region);
+			regionMap.put(tableName,arr);
+			
+		}
+		
+		return true;
+		/* check if recovery is needed and pause till recovery */
 	}
 	
 }

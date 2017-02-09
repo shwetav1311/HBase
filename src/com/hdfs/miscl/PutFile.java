@@ -34,9 +34,8 @@ public class PutFile implements Runnable {
 	
 	public int status;
 	
-	public PutFile(String threadNameArgs,String fileNameArgs) {
+	public PutFile(String fileNameArgs) {
 		super();
-		threadName = threadNameArgs;
 		fileName = fileNameArgs;
 	}
 

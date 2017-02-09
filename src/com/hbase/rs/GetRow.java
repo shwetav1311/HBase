@@ -256,6 +256,10 @@ public class GetRow {
 		FileInputStream fis;
 		try {
 			fis = new FileInputStream(file);
+			
+			/*Todo
+			 *  read first 8 bytes to get the sequence id
+			 */
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
 			fis.close();

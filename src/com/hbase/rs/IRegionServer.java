@@ -16,4 +16,8 @@ public interface IRegionServer extends Remote {
 	
 	/** scan table **/
 	byte[] scan(byte[] inp) throws RemoteException;
+	
+	/** load region **/
+	
+	boolean loadRegion(String tableName) throws RemoteException;
 }

@@ -202,7 +202,7 @@ public class WriteHFiles extends Thread{
 	private void putIntoHDFS(String hFileName) {
 		// TODO Auto-generated method stub
 		
-		PutFile putFile = new PutFile(hFileName,hFileName);
+		PutFile putFile = new PutFile(hFileName);
 		Thread thread1 = new Thread(putFile);
 		thread1.start();
 		try {
