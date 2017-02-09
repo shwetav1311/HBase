@@ -1,12 +1,9 @@
 package com.hdfs.miscl;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -70,7 +67,7 @@ public class PutFile implements Runnable {
 		{			
 			Registry registry=LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			INameNode nameStub;
-			int status;
+//			int status;
 			
 				try 
 				{
@@ -88,12 +85,14 @@ public class PutFile implements Runnable {
 					if(status==Constants.STATUS_FAILED )//status failed change it
 					{
 						System.out.println("Fatal Error!");
-//						System.exit(0);
+						//System.exit(0);
+						return;
 					}
 					else if(status==Constants.STATUS_NOT_FOUND)
 					{
 						System.out.println("Duplicate File");
-//						System.exit(0);
+						//System.exit(0);
+						return;
 					}
 					
 					AssignBlockRequest.Builder assgnBlockReqObj = AssignBlockRequest.newBuilder(); 
@@ -139,7 +138,8 @@ public class PutFile implements Runnable {
 						if(status==Constants.STATUS_FAILED)
 						{
 							System.out.println("Fatal Error!");
-//							System.exit(0);
+							//System.exit(0);
+							return;
 						}
 						
 						blkLocation = assignResponseObj.getNewBlock();
@@ -157,17 +157,26 @@ public class PutFile implements Runnable {
 
 						System.out.println(dataNode);
 						IDataNode dataStub = (IDataNode) registry2.lookup(Constants.DATA_NODE_ID);
-//						dataStub.readBlock(null);
-						
-//						System.out.println("Control enters here");
+
 						/**read 32MB from file, send it as bytes, this fills in the byteArray**/
 						
 						byte[] byteArray = read32MBfromFile(offset);
+						
 						offset=offset+(int)Constants.BLOCK_SIZE;
 						
-						System.out.println("Byte array"+byteArray.length);
+//						System.out.println("---------------------"+byteArray.length);
 						
-						writeBlockObj.addData(ByteString.copyFrom(byteArray));
+						for(int j=0;j<byteArray.length;j++)
+						{
+							writeBlockObj.addData(ByteString.copyFrom(byteArray,j,1));
+						}
+						
+						String s = new String(byteArray);
+						System.out.println("*************The new char array is "+s);
+						System.out.println("data count"+writeBlockObj.getDataCount());
+//						writeBlockObj.addData(ByteString.copyFrom(byteArray));
+						
+						
 						writeBlockObj.setBlockInfo(blkLocation);
 						
 						dataStub.writeBlock(writeBlockObj.build().toByteArray());
@@ -205,7 +214,7 @@ public class PutFile implements Runnable {
 		}catch (RemoteException e) {
 			// TODO Auto-generated catch block
 				e.printStackTrace();
-		}		
+		}			
 		
 		
 	}
@@ -222,11 +231,9 @@ public class PutFile implements Runnable {
 		
 		long fileSize = inputFile.length();
 		FILESIZE=inputFile.length();
-		
-		
 		double noOfBlocks = Math.ceil((double)fileSize*1.0/(double)Constants.BLOCK_SIZE*1.0);
 		
-		System.out.println("The length of the file is "+fileSize+ " Number of blocks are "+(int)noOfBlocks);
+//		System.out.println("The length of the file is "+fileSize+ " Number of blocks are "+(int)noOfBlocks);
 		
 		return (int)noOfBlocks;
 	}
@@ -236,7 +243,6 @@ public class PutFile implements Runnable {
 	{
 		
 		System.out.println("offset is "+offset);
-
 		
 		FileInputStream breader = null;
 		try {
@@ -245,10 +251,7 @@ public class PutFile implements Runnable {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
-
-		
-		
+	
 		int bytesToBeRead = (int)Constants.BLOCK_SIZE;
 		
 		int limit =offset+(int)Constants.BLOCK_SIZE; 
@@ -267,8 +270,9 @@ public class PutFile implements Runnable {
 		byte[] newCharArray = new byte[bytesToBeRead];
 		
 		try {
-//			breader.skip(offset);
-			breader.read(newCharArray, 0, bytesToBeRead);
+			breader.skip(offset);
+//			breader.read(newCharArray, 0, bytesToBeRead);
+			breader.read(newCharArray);
 			
 			
 		} catch (IOException e) {
@@ -282,7 +286,8 @@ public class PutFile implements Runnable {
 			e.printStackTrace();
 		}
 		
-//		System.out.println("The new char array is "+newCharArray.length);
+		 String s = new String(newCharArray);
+		System.out.println("The new char array is "+s.length());
 		return newCharArray;
 		
 	}

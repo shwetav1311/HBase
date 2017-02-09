@@ -67,8 +67,7 @@ public class GetFile implements Runnable{
 				if(responseObj.getStatus()==Constants.STATUS_NOT_FOUND)
 				{
 					System.out.println("File not found fatal error");
-					this.status=Constants.STATUS_NOT_FOUND;
-					return;
+					System.exit(0);
 				}
 				
 				//receives all the block numbers associated with a given file
@@ -99,8 +98,7 @@ public class GetFile implements Runnable{
 				if(blockLocResObj.getStatus()==Constants.STATUS_FAILED)
 				{
 					System.out.println("Fatal error!");
-					this.status=Constants.STATUS_FAILED;
-					return;
+					System.exit(0);
 				}
 				
 				/** We might have many blocks per file, so we get the datanode locations of each
@@ -119,8 +117,7 @@ public class GetFile implements Runnable{
 					if(dataNodes==null || dataNodes.size()==0)
 					{
 						System.out.println("All nodes are down :( ");
-						this.status=Constants.STATUS_FAILED;
-						return;
+						System.exit(0);
 					}
 					
 					int dataNodeCounter=0;
@@ -168,8 +165,7 @@ public class GetFile implements Runnable{
 					if(dataNodeCounter == dataNodes.size())
 					{
 						System.out.println("All data nodes are down :( ");
-						this.status=Constants.STATUS_FAILED;
-						return;
+						System.exit(0);
 					}
 					
 
@@ -185,16 +181,23 @@ public class GetFile implements Runnable{
 					if(readBlockResObj.getStatus()==Constants.STATUS_FAILED)
 					{
 						System.out.println("In method openFileGet(), readError");
-						this.status=Constants.STATUS_FAILED;
-						return;
+						System.exit(0);
 					}
 					
-					responseArray = readBlockResObj.getData(0).toByteArray();	
-//					System.out.println("Response array size"+responseArray.length);
+//					responseArray = readBlockResObj.getData(0).toByteArray();	
 					
-					String str = new String(responseArray, StandardCharsets.UTF_8);						
+					byte [] dataOut = new byte[readBlockResObj.getDataList().size()];
+					
+					for(int k=0;k<readBlockResObj.getDataList().size();k++)
+					{
+						readBlockResObj.getDataList().get(k).copyTo(dataOut,k);
+					}
+					
+					
+					String str = new String(dataOut);			
+					System.out.print(str);
 					//fileWriteObj.writeonly(str);
-					fileWriteObj.writeBytes(responseArray);
+					fileWriteObj.writeBytes(dataOut);
 
 				}
 				
@@ -202,13 +205,9 @@ public class GetFile implements Runnable{
 			} catch (InvalidProtocolBufferException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				this.status=Constants.STATUS_FAILED;
-				
 			}
 		} catch (NotBoundException e) {
 			System.out.println("Exception caught: NotBoundException ");			
-			this.status=Constants.STATUS_FAILED;
-			
 		} catch (RemoteException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
