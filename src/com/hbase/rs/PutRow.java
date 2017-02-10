@@ -12,9 +12,9 @@ public class PutRow {
 		memStore = memStoreArg;
 	}
 	
-	void appendRow(PutRequest dataIn)
+	void appendRow(PutRequest dataIn,int seqID)
 	{
-		memStore.insertIntoMemStore(dataIn);
+		memStore.insertIntoMemStore(dataIn,seqID);
 	}
 
 }
