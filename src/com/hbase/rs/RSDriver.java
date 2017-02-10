@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -73,6 +74,49 @@ public class RSDriver implements IRegionServer {
 	    }
 		
 		bindToRegistry();
+		
+//		try {
+//			new Thread().sleep(3000);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		testRecovery();
+		
+		
+		
+	}
+	
+	public static void testRecovery()
+	{
+		String id="1";  // Region Server ID
+		Registry registry = null;
+		try {
+			registry = LocateRegistry.getRegistry(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+Integer.parseInt(id));
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		}
+		
+		
+		IRegionServer rsStub = null;
+			try 
+			{
+				rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER+id);
+			}catch (NotBoundException | RemoteException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Could not find Region Server");
+				e.printStackTrace();
+			} 	
+		
+			 try {
+				rsStub.loadRegion("Employee", false);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	}
 	
 	/** 
@@ -300,13 +344,14 @@ public class RSDriver implements IRegionServer {
 	 */
 	public static synchronized int getSeqID()
 	{
+		Integer num=0;
 		try {
 						
 			BufferedReader buff = new BufferedReader(new FileReader(HBaseConstants.SEQ_ID_FILE));
 			String line=buff.readLine();
 			buff.close();
 			
-			Integer num = Integer.parseInt(line);
+			num = Integer.parseInt(line);
 			num++;
 			PrintWriter pw;
 			try {
@@ -318,24 +363,19 @@ public class RSDriver implements IRegionServer {
 				e.printStackTrace();
 			}
 			
-			return num-1;
-			
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		return ++seqID;
+		return num-1;
 	}
 	
 	/**
 	 * @author master
 	 */
-	public void createRegions()
-	{
-		
-	}
+	
 
 	@Override
 	public boolean loadRegion(String tableName,boolean callerMethod) throws RemoteException {

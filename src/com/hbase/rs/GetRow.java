@@ -340,22 +340,22 @@ public class GetRow {
 			 fis = new FileInputStream(fileName);
 			 
 			 fis.skip(offset);
-			  fis.read(bs,0,8);
+			 fis.read(bs,0,8);
 			
 			
 			String str = new String(bs, StandardCharsets.UTF_8);
-			System.out.println("The length we are looking for is "+str);
+//			System.out.println("The length we are looking for is "+str);
 			int len = Converter.hexToDec(str);
-			System.out.println("The length we are looking for in int is "+len);
+//			System.out.println("The length we are looking for in int is "+len);
 			
 			byte[] data = new byte[len];			
 			
 			int i = fis.read(data,0,len);
-			System.out.println("Read "+i);
+//			System.out.println("Read "+i);
 			
 			fis.close();
 			
-			System.out.println("Reading lenth"+data.length);
+//			System.out.println("Reading lenth"+data.length);
 			
 			Row rows = Row.parseFrom(data);
 			

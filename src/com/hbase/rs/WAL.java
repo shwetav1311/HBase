@@ -62,7 +62,7 @@ public class WAL {
 	public void appendToHDFS(String seqID, String RSID, byte[] dataIn)
 	{
 		WalEntry.Builder walEntry = WalEntry.newBuilder();
-		walEntry.setRsID(seqID);
+		walEntry.setSeqID(seqID);
 		walEntry.setRsID(RSID);
 		PutRequest putObj = null;
 		
@@ -72,7 +72,7 @@ public class WAL {
 			walEntry.setLogEntry(putObj);
 			
 			int size = walEntry.build().toByteArray().length;
-			size = size + 8;
+	
 			
 			
 			Integer length = walEntry.build().toByteArray().length;			

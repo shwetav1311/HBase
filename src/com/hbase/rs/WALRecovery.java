@@ -106,7 +106,7 @@ public class WALRecovery {
 		
 		try {
 			is = new FileInputStream(localIFile);
-			if (is.read(buffer) != buffer.length) { 
+			if (is.read(buffer,0,8) != -1) { 
 			    System.out.println("Some problem the index file is not even 8 bytes long"); 
 			}
 			is.close();
@@ -115,6 +115,8 @@ public class WALRecovery {
 			e.printStackTrace();
 		}
 		String str = new String(buffer, StandardCharsets.UTF_8);
+		
+		System.out.println("Read latest sequnce is "+str + " " + Converter.hexToDec(str));
 		
 		return Converter.hexToDec(str); // this is the sequence ID
 		
@@ -138,7 +140,7 @@ public class WALRecovery {
 		
 		for(String fileName: listNames)
 		{
-			if(fileName.startsWith(HBaseConstants.INDEX_PREFIX))
+			if(!fileName.startsWith(HBaseConstants.INDEX_PREFIX))
 				continue;
 			String[] token = fileName.split(HBaseConstants.FILE_SEPARATOR);
 			HFile hFile = new HFile();
@@ -193,11 +195,11 @@ public class WALRecovery {
 		
 	}
 	
-	public static void main(String[] args)
-	{
-		createDirectory();
-	}
-	
+//	public static void main(String[] args)
+//	{
+//		createDirectory();
+//	}
+//	
 	/**
 	 * Get file from HDFS, inputFile( present in HDFS), outputFile( downloaded to local FIle system)
 	 * possible errors: file get from HDFS fails!, this is a simple get
@@ -226,22 +228,33 @@ public class WALRecovery {
 	 */
 	private void readFromWal(int seqID) 
 	{
-		 byte[] bs = new byte[8];
+		 
+		
+		byte[] bs = new byte[8];
 		 FileInputStream fis = null;
 		 
 		 try {
-			
-			System.out.println("Reading "+localWal);
+			 System.out.println("Searching sequenceID "+seqID);
+			 
+			 System.out.println("Reading "+localWal);
 			
 			fis = new FileInputStream(localWal);
 			
-			while(fis.read(bs,0,8)!=-1)
+			while(true)
 			{
+				int sig = fis.read(bs,0,8);
+				System.out.println("read status: "+sig);
+				if(sig<=0)
+				{
+					System.out.println("Finished reading");
+					break;
+				}
+				
 				String str = new String(bs, StandardCharsets.UTF_8);
-				System.out.println("The length we are looking for is "+str);
+//				System.out.println("The length we are looking for is "+str);
 				int len = Converter.hexToDec(str);
 				
-				System.out.println("The length we are looking for in int is "+len);				
+//				System.out.println("The length we are looking for in int is "+len);				
 				byte[] data = new byte[len];
 			
 				int i = fis.read(data,0,len);
@@ -249,10 +262,17 @@ public class WALRecovery {
 				
 				/** wal entry is here.. WALEntry consists of: seqID, rsID, putrequest **/ 
 				WalEntry trans = WalEntry.parseFrom(data);
+				
+//				System.out.println("Wal entry "+trans);
+//				System.out.println("My sequence id "+ seqID + 
+//						"  " + Integer.parseInt(trans.getSeqID()));
+				
 				if(Integer.parseInt(trans.getSeqID()) > seqID)
 				{
 					//add entry to the memStore
-					region.insertRow(trans.getLogEntry(),seqID);
+					
+					int local_seq= RSDriver.getSeqID();
+					region.insertRow(trans.getLogEntry(),local_seq);
 				}
 			}
 			
