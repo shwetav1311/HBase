@@ -10,6 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
+import org.apache.zookeeper.proto.SetWatches;
+
 import com.hbase.miscl.HBase.Cell;
 import com.hbase.miscl.HBase.Column;
 import com.hbase.miscl.HBase.ColumnFamily;
@@ -28,15 +30,17 @@ public class MemStore {
 	public int count = 0;
 	public static long numBlock=0;
 	
+	
 	public MemStore(String tblName,String sKey,String eKey)
 	{
 		memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();		
 		tableName  = tblName;
 		startKey = sKey;
 		endKey = eKey;
+		
 	}
 	
-	synchronized void  insertIntoMemStore(PutRequest dataIn)
+	synchronized void  insertIntoMemStore(PutRequest dataIn,int seqID)
 	{
 		
 //		System.out.println("recaching insert memstore");
@@ -114,18 +118,18 @@ public class MemStore {
 			}
 			
 		}
-		incrementCount(dataIn.toByteArray().length);
+		incrementCount(dataIn.toByteArray().length,seqID);
 		
 
 	}
 	
-	private synchronized void incrementCount(int inc)
+	private synchronized void incrementCount(int inc,int seqID)
 	{
 			count= count+inc;
 			if(isMemStoreFull(count))
 			{
 				tempStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >(memStore);
-				writeToHFile();
+				writeToHFile(seqID);
 //				memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();
 				memStore.clear();
 //				writeToHFile();
@@ -135,9 +139,9 @@ public class MemStore {
 			
 	}
 	
-	private  void writeToHFile() {
+	private  void writeToHFile(int seqID) {
 		// TODO Auto-generated method stub
-			WriteHFiles myObj = new WriteHFiles(tempStore,getTimeStamp());
+			WriteHFiles myObj = new WriteHFiles(tempStore,getTimeStamp(),seqID);
 			myObj.set(tableName,startKey,endKey);
 //			myObj.r
 			Thread t = new  Thread(myObj);

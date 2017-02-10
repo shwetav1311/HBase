@@ -260,7 +260,22 @@ public class GetRow {
 			/*Todo
 			 *  read first 8 bytes to get the sequence id
 			 */
-			byte[] data = new byte[(int) file.length()];
+			
+			long totalLen = file.length();
+			
+			/* skip the sequence ID */
+			byte[] bs = new byte[8];
+			
+			fis.read(bs,0,8);
+			
+			fis.close();
+			
+			System.out.println("SequenceID : " + Converter.hexToDec(new String(bs, StandardCharsets.UTF_8)));
+			
+			fis = new FileInputStream(file);
+			fis.skip(8);
+			
+			byte[] data = new byte[(int) (totalLen - 8)];
 			fis.read(data);
 			fis.close();
 			

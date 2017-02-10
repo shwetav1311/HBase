@@ -26,10 +26,10 @@ public class Region {
 		this.putRow = new PutRow(memStore);
 	}
 
-	void insertRow(PutRequest req)
+	void insertRow(PutRequest req,int seqID)
 	{
 		
-		putRow.appendRow(req);
+		putRow.appendRow(req,seqID);
 	}
 	
 	

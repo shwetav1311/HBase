@@ -1,27 +1,21 @@
 package com.hbase.rs;
 
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.google.protobuf.InvalidProtocolBufferException;
+import com.hbase.miscl.Converter;
 import com.hbase.miscl.HBase.Cell;
 import com.hbase.miscl.HBase.Column;
 import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.IndexEntry;
 import com.hbase.miscl.HBase.IndexList;
 import com.hbase.miscl.HBase.Row;
-import com.hbase.miscl.Converter;
 import com.hbase.miscl.HBaseConstants;
 import com.hdfs.miscl.PutFile;
 
@@ -31,11 +25,13 @@ public class WriteHFiles extends Thread{
 	public long blockNumber; 
 	
 	public String tableName,start,end;
+	public int latestSeqID;
 	
-	public WriteHFiles(TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore,long blockNum) {
+	public WriteHFiles(TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore,long blockNum, int seqID) {
 		// TODO Auto-generated constructor stub
 		memStore = tempStore ;
 		blockNumber = blockNum;
+		latestSeqID = seqID;
 	}
 	
 	public void set(String tableName,String start, String end)
@@ -180,7 +176,28 @@ public class WriteHFiles extends Thread{
         }
         
         try {
-			indexOut.write(indexListObj.build().toByteArray());
+        	
+        	/* gives the last sequenceID written */
+        	String hex = Integer.toHexString(latestSeqID);
+        	
+//        	System.out.println("Writing seq ID "+hex);
+        	
+        	if(hex.length()<8)
+			{
+				int prefix = 8 - hex.length();
+				String temp = "";
+				while(prefix>0)
+				{
+					temp = temp + "0";
+					prefix--;
+				}			
+				hex = temp + hex;
+			}	
+        	
+        	
+        	indexOut.write(hex.getBytes(Charset.forName("UTF-8")));
+        	
+        	indexOut.write(indexListObj.build().toByteArray());
 			indexOut.close();
 		    stream.close();
 		} catch (IOException e) {
@@ -188,8 +205,6 @@ public class WriteHFiles extends Thread{
 			e.printStackTrace();
 		}
        
-        
-        
         
         putIntoHDFS(hFileName);
         putIntoHDFS(indexHFile);
