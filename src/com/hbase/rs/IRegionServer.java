@@ -19,5 +19,5 @@ public interface IRegionServer extends Remote {
 	
 	/** load region **/
 	
-	boolean loadRegion(String tableName) throws RemoteException;
+	boolean loadRegion(String tableName,boolean flag) throws RemoteException;
 }

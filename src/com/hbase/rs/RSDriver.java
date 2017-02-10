@@ -33,17 +33,15 @@ public class RSDriver implements IRegionServer {
 	
 	static int id;
 	static int seqID = 0; 
-	
-	/* why the naming is numblock ?? clearly we are not dealing with blocks 
-	 * Also we can put the code in WAL class so that we separate RegionServer tasks and wal tasks.
-	 * */
-	//map to store table to Region mapping
-	
+
+	//map to store table to Region mapping	
 	static HashMap<String,ArrayList<Region>> regionMap;
 	static WAL walObj; 
 	
 	public static void main(String[] args)
 	{
+		
+		
 		
 		/** WAL object, with WAL file Name **/
 		walObj = new WAL(HBaseConstants.REGION_SERVER+id+HBaseConstants.WAL_SUFFIX);
@@ -110,8 +108,7 @@ public class RSDriver implements IRegionServer {
 			
 			String tableName = req.getTableName();
 			
-			/* write temporary file to be uploaded to hdfs */
-			;
+			/* write temporary file to be uploaded to hdfs */			
 			String temp = "";
 			
 			for ( String name : req.getColFamiliesList())
@@ -129,7 +126,7 @@ public class RSDriver implements IRegionServer {
 			
 			int status = createTableHDFS(tableName);
 			
-			boolean success = (new File(tableName)).delete();
+//			boolean success = (new File(tableName)).delete();
 			
 			if(regionMap.get(tableName) == null)
 			{
@@ -174,7 +171,7 @@ public class RSDriver implements IRegionServer {
 		int seqID = getSeqID();
 		
 		/**Write into WAL**/
-		
+		appendIntoWAL(seqID+"", HBaseConstants.REGION_SERVER+id+"",inp);
 		
 		PutResponse.Builder res = PutResponse.newBuilder();
 		res.setStatus(Constants.STATUS_SUCCESS);
@@ -195,17 +192,14 @@ public class RSDriver implements IRegionServer {
 				arr.add(region);
 				regionMap.put(tableName,arr);
 				
-				regionMap.get(tableName).get(0).insertRow(req);
-				
-				
+				regionMap.get(tableName).get(0).insertRow(req,seqID);
 				
 			}else
 			{
-				regionMap.get(tableName).get(0).insertRow(req);
-
+				regionMap.get(tableName).get(0).insertRow(req,seqID);
 			}
 
-			appendIntoWAL(seqID+"", HBaseConstants.REGION_SERVER+id+"",inp);
+			
 			
 		} catch (InvalidProtocolBufferException e) {
 			// TODO Auto-generated catch block
@@ -307,8 +301,8 @@ public class RSDriver implements IRegionServer {
 	public static synchronized int getSeqID()
 	{
 		try {
-			
-			BufferedReader buff = new BufferedReader(new FileReader(Constants.BLOCK_NUM_FILE));
+						
+			BufferedReader buff = new BufferedReader(new FileReader(HBaseConstants.SEQ_ID_FILE));
 			String line=buff.readLine();
 			buff.close();
 			
@@ -316,7 +310,7 @@ public class RSDriver implements IRegionServer {
 			num++;
 			PrintWriter pw;
 			try {
-				pw = new PrintWriter(new FileWriter(Constants.BLOCK_NUM_FILE));
+				pw = new PrintWriter(new FileWriter(HBaseConstants.SEQ_ID_FILE));
 			    pw.write(num.toString());
 		        pw.close();
 			} catch (IOException e) {
@@ -344,20 +338,40 @@ public class RSDriver implements IRegionServer {
 	}
 
 	@Override
-	public boolean loadRegion(String tableName) throws RemoteException {
+	public boolean loadRegion(String tableName,boolean callerMethod) throws RemoteException {
 		// TODO Auto-generated method stub
 		
-		if(regionMap.get(tableName) == null)
+		if(callerMethod == true)
 		{
-			ArrayList<Region> arr = new ArrayList<>();
-			Region region = new Region(tableName, "0");
-			arr.add(region);
-			regionMap.put(tableName,arr);
-			
+			System.out.println("Create table has called by HMaster ");
+			/** create a Region  here and add it to the entry, table to region map **/			
+			createRegion(tableName);
 		}
-		
+		else
+		{
+			System.out.println("WAL recovery call");
+			/** Things stop here until recovery here **/
+			createRegion(tableName);
+			
+			WALRecovery walObj = new WALRecovery(tableName,regionMap.get(tableName).get(0));
+			walObj.getWALName();
+			walObj.downloadAndRecoverWAL();
+			walObj.setWALName();
+		}
+				
 		return true;
-		/* check if recovery is needed and pause till recovery */
+		
 	}
 	
+	/**
+	 * Creates a mem-store internally, (in memory structure)
+	 * @param tableName
+	 */
+	public void createRegion(String tableName)
+	{
+		Region newRegion = new Region(tableName, "0"); // table name and start key
+		ArrayList<Region> arr = new ArrayList<>();
+		arr.add(newRegion);
+		regionMap.put(tableName,arr);
+	}
 }
