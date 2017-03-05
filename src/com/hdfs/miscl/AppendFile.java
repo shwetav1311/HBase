@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.hbase.miscl.HBaseConstants;
 import com.hdfs.datanode.IDataNode;
 import com.hdfs.miscl.Hdfs.AssignBlockRequest;
 import com.hdfs.miscl.Hdfs.AssignBlockResponse;
@@ -36,20 +37,8 @@ public class AppendFile  {
 		
 	}
 	
-	public void append(String fileName,byte[] appendData)
-	{
-		
-		Thread thread = new Thread() {
-	        public void run() {
-
-	        	appendThread(fileName,appendData);
-	        }
-	    };
-		
-	    thread.start();
-	}
 	
-	public void appendThread(String fileName,byte[] appendData) 
+	public int append(String fileName,byte[] appendData) 
 	{
 		OpenFileRequest.Builder openFileReqObj = OpenFileRequest.newBuilder();
 		openFileReqObj.setFileName(fileName);
@@ -97,7 +86,7 @@ public class AppendFile  {
 		    
 			bytesToRead = appendData.length;
 		    /*Handles all cases */
-		    sendFileAsAppendCaseThree(responseObj,remainSize,bytesToRead,appendData);
+		   return sendFileAsAppendCaseThree(responseObj,remainSize,bytesToRead,appendData);
 		    
 //		    breader.close();
 		      
@@ -114,6 +103,7 @@ public class AppendFile  {
 			e.printStackTrace();
 		}
 		
+		return HBaseConstants.APPEND_STATUS_FAILURE;
 		
 	}
 	
@@ -126,7 +116,7 @@ public class AppendFile  {
 	 * @param appendData 
 	 */
 	
-	private static void sendFileAsAppendCaseThree(OpenFileResponse resObj,int remainSize,int totalBytes, byte[] appendData) {
+	private int sendFileAsAppendCaseThree(OpenFileResponse resObj,int remainSize,int totalBytes, byte[] appendData) {
 		// TODO Auto-generated method stub
 		/**
 		 * 1. prepare a write block request, for that get block locations 
@@ -227,15 +217,16 @@ public class AppendFile  {
 			{
 				if(writeBlkRes.getCount()>=2)
 				{
-					System.out.println("Okay! first phase of append done, now its normal writes");
+					System.out.println("Okay! Append Success");
 				}
 				else
 				{
-					System.out.println("Aborting due to lack of votes");
+					System.out.println("Append Aborting due to lack of votes");
 					CloseFileRequest.Builder closeFileObj = CloseFileRequest.newBuilder();
 					closeFileObj.setDecision(0);//abort
 					closeFileObj.setHandle(resObj.getHandle()); //handle
 					nameStub.closeFile(closeFileObj.build().toByteArray());
+					return HBaseConstants.APPEND_STATUS_FAILURE;
 				}
 			}
 
@@ -262,11 +253,19 @@ public class AppendFile  {
 			
 			closeFileObj.setHandle(resObj.getHandle()); //handle
 			nameStub.closeFile(closeFileObj.build().toByteArray());
+			
+			if(success)
+			{
+				return HBaseConstants.APPEND_STATUS_SUCCESS;
+			}else
+			{
+				return HBaseConstants.APPEND_STATUS_FAILURE;
+			}
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
-			System.out.println("Whats up exception caught!");
+//			System.out.println("Whats up exception caught!");
 			isException=true;
 		}
 		
@@ -281,7 +280,11 @@ public class AppendFile  {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			return HBaseConstants.APPEND_STATUS_FAILURE;
 		}
+		System.out.println("---------------Close File called---------------");
+		return HBaseConstants.APPEND_STATUS_SUCCESS;
 		
 		
 				

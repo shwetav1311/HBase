@@ -34,6 +34,7 @@ public class RSDriver implements IRegionServer {
 	
 	static int id;
 	static int seqID = 0; 
+	static int recFlag = 0; // 1 means recovery
 
 	//map to store table to Region mapping	
 	static HashMap<String,ArrayList<Region>> regionMap;
@@ -52,6 +53,8 @@ public class RSDriver implements IRegionServer {
 		regionMap = new HashMap<>();
 		
 		id=Integer.parseInt(args[0]);
+		
+		recFlag = Integer.parseInt(args[1]);
 		
 		System.out.println("Region server Binding to Registry...");
 		
@@ -75,20 +78,22 @@ public class RSDriver implements IRegionServer {
 		
 		bindToRegistry();
 		
-//		try {
-//			new Thread().sleep(3000);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		testRecovery();
+		try {
+			new Thread().sleep(3000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String tableName = "Sports";
+		if(recFlag==1)
+			testRecovery(tableName);
 		
 		
 		
 	}
 	
-	public static void testRecovery()
+	public static void testRecovery(String tableName)
 	{
 		String id="1";  // Region Server ID
 		Registry registry = null;
@@ -112,7 +117,7 @@ public class RSDriver implements IRegionServer {
 			} 	
 		
 			 try {
-				rsStub.loadRegion("Employee", false);
+				rsStub.loadRegion(tableName, false);
 			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -215,10 +220,21 @@ public class RSDriver implements IRegionServer {
 		int seqID = getSeqID();
 		
 		/**Write into WAL**/
-		appendIntoWAL(seqID+"", HBaseConstants.REGION_SERVER+id+"",inp);
+		int stat = appendIntoWAL(seqID+"", HBaseConstants.REGION_SERVER+id+"",inp);
+		
+		System.out.println("---------------Back to put---------------");
 		
 		PutResponse.Builder res = PutResponse.newBuilder();
 		res.setStatus(Constants.STATUS_SUCCESS);
+		
+		
+		if(stat==HBaseConstants.APPEND_STATUS_FAILURE)
+		{
+			res.setStatus(Constants.STATUS_FAILED);
+			return res.build().toByteArray();
+		}
+		
+		
 		
 		try {
 			PutRequest req = PutRequest.parseFrom(inp);
@@ -264,10 +280,11 @@ public class RSDriver implements IRegionServer {
 	 * @param seqID
 	 * @param RSID
 	 * @param dataIn
+	 * @return 
 	 */
-	private void appendIntoWAL(String seqID, String RSID, byte[] dataIn) {
+	private int appendIntoWAL(String seqID, String RSID, byte[] dataIn) {
 		// TODO Auto-generated method stub
-		walObj.appendToHDFS(seqID,RSID,dataIn);
+		return walObj.appendToHDFS(seqID,RSID,dataIn);
 	}
 
 	@Override

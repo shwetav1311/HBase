@@ -139,7 +139,17 @@ public class MemStore {
 			
 	}
 	
-	private  void writeToHFile(int seqID) {
+	
+	/* create a hfile when recovery is done */
+	public synchronized void writeToHFileRecovery(int seqID)
+	{
+		tempStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >(memStore);
+		writeToHFile(seqID);
+		memStore.clear();
+		count = 0;
+	}
+	
+	private synchronized void writeToHFile(int seqID) {
 		// TODO Auto-generated method stub
 			WriteHFiles myObj = new WriteHFiles(tempStore,getTimeStamp(),seqID);
 			myObj.set(tableName,startKey,endKey);

@@ -6,6 +6,7 @@ import java.io.IOException;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBase.WalEntry;
+import com.hbase.miscl.HBaseConstants;
 import com.hdfs.miscl.AppendFile;
 import com.hdfs.miscl.PutFile;
 
@@ -58,8 +59,9 @@ public class WAL {
 	/**
 	 * append to HDFS
 	 * @param entry
+	 * @return 
 	 */
-	public void appendToHDFS(String seqID, String RSID, byte[] dataIn)
+	public int appendToHDFS(String seqID, String RSID, byte[] dataIn)
 	{
 		WalEntry.Builder walEntry = WalEntry.newBuilder();
 		walEntry.setSeqID(seqID);
@@ -106,13 +108,15 @@ public class WAL {
 			System.arraycopy(data, 0, binDataOut, first8Bytes.length, data.length);
 			
 			
-			appendObj.append(walFname, binDataOut);
+			return appendObj.append(walFname, binDataOut);
 			
 		} catch (InvalidProtocolBufferException e) {
 			
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
+		
+		return HBaseConstants.APPEND_STATUS_FAILURE;
 	}
 	
 }

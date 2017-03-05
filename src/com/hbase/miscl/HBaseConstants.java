@@ -16,5 +16,10 @@ public final class HBaseConstants {
 	public static final String WAL_SUFFIX = "_WAL";
 	public static final String SEQ_ID_FILE = "SeqID";
 	public static final String WAL_DIR = "./WALRecovery/";
+	
+	public static final Integer APPEND_STATUS_SUCCESS = 1;
+	public static final Integer APPEND_STATUS_FAILURE = 0;
 
+	
+	
 }

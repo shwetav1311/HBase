@@ -78,7 +78,7 @@ public class PutFile implements Runnable {
 					OpenFileResponse responseObj = OpenFileResponse.parseFrom(responseArray);
 					
 					fileHandle = responseObj.getHandle();
-					System.out.println("The file handle is "+fileHandle);
+//					System.out.println("The file handle is "+fileHandle);
 					
 					status = responseObj.getStatus();
 					if(status==Constants.STATUS_FAILED )//status failed change it
@@ -89,7 +89,7 @@ public class PutFile implements Runnable {
 					}
 					else if(status==Constants.STATUS_NOT_FOUND)
 					{
-						System.out.println("Duplicate File");
+//						System.out.println("Duplicate File");
 						//System.exit(0);
 						return;
 					}

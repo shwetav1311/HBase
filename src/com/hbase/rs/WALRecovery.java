@@ -66,9 +66,9 @@ public class WALRecovery {
 		createDirectory();
 		//walFname,HBaseConstants.WAL_DIR+walFname);
 		localWal = HBaseConstants.WAL_DIR+walFname;
-		getFileFromHDFS(walFname,localWal);
-		
+		getFileFromHDFS(walFname,localWal);		
 		performRecovery();
+		
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class WALRecovery {
 		
 		try {
 			is = new FileInputStream(localIFile);
-			if (is.read(buffer,0,8) != -1) { 
+			if (is.read(buffer,0,8) <= 0) { 
 			    System.out.println("Some problem the index file is not even 8 bytes long"); 
 			}
 			is.close();
@@ -144,7 +144,7 @@ public class WALRecovery {
 				continue;
 			String[] token = fileName.split(HBaseConstants.FILE_SEPARATOR);
 			HFile hFile = new HFile();
-			hFile.timeStamp=token[0];
+			hFile.timeStamp=token[1];
 			hFile.fileName = fileName;
 			hList.add(hFile);
 		}
@@ -240,10 +240,12 @@ public class WALRecovery {
 			
 			fis = new FileInputStream(localWal);
 			
+			int lastSeqID=0;
+			
 			while(true)
 			{
 				int sig = fis.read(bs,0,8);
-				System.out.println("read status: "+sig);
+//				System.out.println("read status: "+sig);
 				if(sig<=0)
 				{
 					System.out.println("Finished reading");
@@ -251,34 +253,38 @@ public class WALRecovery {
 				}
 				
 				String str = new String(bs, StandardCharsets.UTF_8);
-//				System.out.println("The length we are looking for is "+str);
+				System.out.println("The length we are looking for is "+str);
 				int len = Converter.hexToDec(str);
 				
-//				System.out.println("The length we are looking for in int is "+len);				
+				System.out.println("Length ::" + len);
+				
 				byte[] data = new byte[len];
 			
 				int i = fis.read(data,0,len);
-				System.out.println("Read bytes: "+i);
+//				System.out.println("Read bytes: "+i);
 				
 				/** wal entry is here.. WALEntry consists of: seqID, rsID, putrequest **/ 
 				WalEntry trans = WalEntry.parseFrom(data);
 				
-//				System.out.println("Wal entry "+trans);
-//				System.out.println("My sequence id "+ seqID + 
-//						"  " + Integer.parseInt(trans.getSeqID()));
-				
-				if(Integer.parseInt(trans.getSeqID()) > seqID)
+				System.out.println("WAL seqID: "+trans.getSeqID()+" My SeqID "+seqID);
+					
+				if(Integer.parseInt(trans.getSeqID()) > seqID && trans.getLogEntry().getTableName().equals(tableName) )
 				{
 					//add entry to the memStore
 					
 					int local_seq= RSDriver.getSeqID();
 					region.insertRow(trans.getLogEntry(),local_seq);
+					System.out.println("Recovering row");
 				}
+				
+				lastSeqID = Integer.parseInt(trans.getSeqID());
 			}
 			
-			fis.close();			
+			fis.close();
 			
-//			System.out.println(rows);
+			/*  create hfile as recovery is completed */
+			region.memStore.writeToHFileRecovery(lastSeqID);
+			
 			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
