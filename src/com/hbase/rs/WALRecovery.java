@@ -96,6 +96,9 @@ public class WALRecovery {
 	private int obtainSequenceNumber() {
 		// TODO Auto-generated method stub
 		String latestIFile = searchLatestIFile();
+		if(latestIFile==null)
+			return 0;
+		
 		localIFile = HBaseConstants.WAL_DIR+latestIFile;
 		getFileFromHDFS(latestIFile,localIFile);
 		
@@ -161,6 +164,9 @@ public class WALRecovery {
 			return  o2.timeStamp.compareTo(o1.timeStamp) ; //descending order
 		} });
 		/*******************************************************/
+		
+		if(hList.size()==0)
+			return null;
 		
 		String indexFileName = hList.get(0).fileName;
 		System.out.println("The latest Index File is "+indexFileName);

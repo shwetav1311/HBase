@@ -22,13 +22,13 @@ import com.hdfs.miscl.Constants;
 public class MemStore {
 	
 	
-	public TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > memStore;
-	public TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore; 
-	public static String tableName;
-	public String startKey;
-	public String endKey;
-	public int count = 0;
-	public static long numBlock=0;
+	TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > memStore;
+	private TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > > tempStore; 
+	private String tableName;
+	private String startKey;
+	private String endKey;
+	private int memStoreSize = 0;
+	private long numBlock=0;
 	
 	
 	public MemStore(String tblName,String sKey,String eKey)
@@ -44,6 +44,7 @@ public class MemStore {
 	{
 		
 //		System.out.println("recaching insert memstore");
+		System.out.println("Table name in row insert memstoe "+tableName);
 		String rowKey = dataIn.getRowkey();
 		if(memStore.containsKey(rowKey)==false)
 		{
@@ -123,17 +124,17 @@ public class MemStore {
 
 	}
 	
-	private synchronized void incrementCount(int inc,int seqID)
+	private synchronized void incrementCount(int size,int seqID)
 	{
-			count= count+inc;
-			if(isMemStoreFull(count))
+			memStoreSize= memStoreSize+size;
+			if(isMemStoreFull(memStoreSize))
 			{
 				tempStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >(memStore);
 				writeToHFile(seqID);
 //				memStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >();
 				memStore.clear();
 //				writeToHFile();
-				count = 0;
+				memStoreSize = 0;
 //				memStore.clear();
 			}
 			
@@ -146,7 +147,7 @@ public class MemStore {
 		tempStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >(memStore);
 		writeToHFile(seqID);
 		memStore.clear();
-		count = 0;
+		memStoreSize = 0;
 	}
 	
 	private synchronized void writeToHFile(int seqID) {
@@ -159,7 +160,7 @@ public class MemStore {
 			
 	}
 
-	private static TreeMap<String, TreeMap<String, List<Cell>>> insertNewColumnFamily(ColumnFamily columnFamily,TreeMap<String, TreeMap<String, List<Cell> > > colFamilyMap ) {
+	private  TreeMap<String, TreeMap<String, List<Cell>>> insertNewColumnFamily(ColumnFamily columnFamily,TreeMap<String, TreeMap<String, List<Cell> > > colFamilyMap ) {
 		// TODO Auto-generated method stub
 		
 		
@@ -211,25 +212,8 @@ public class MemStore {
 	}
 	
 
-	List<com.hbase.miscl.HBase.ColumnFamily> searchMemStore()  // when get method searches in memstore
-	{
-		return null;
-		
-	}
 	
-	
-	void writeHFile()
-	{
-		
-	}
-	
-	
-	void convertToList()
-	{
-		
-	}
-	
-	public static synchronized Long getTimeStamp()
+	public  synchronized Long getTimeStamp()
 	{
 		
 		

@@ -69,7 +69,7 @@ public class AppendFile implements Runnable {
 			
 			OpenFileResponse responseObj = OpenFileResponse.parseFrom(responseArray);
 			fileHandle = responseObj.getHandle();
-			System.out.println("The file handle is "+fileHandle);
+//			System.out.println("The file handle is "+fileHandle);
 			
 			if(responseObj.getStatus()==Constants.STATUS_NOT_FOUND||responseObj.getStatus()==Constants.STATUS_FAILED)
 			{

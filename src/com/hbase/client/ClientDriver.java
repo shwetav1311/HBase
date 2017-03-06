@@ -126,79 +126,92 @@ public class ClientDriver {
 	
 	public static void putTable(String tableName,String[] args)
 	{
-		PutRequest.Builder putRequest = PutRequest.newBuilder();
-		putRequest.setTableName(tableName);
-		putRequest.setRowkey(args[2]);
-		
-		/* club all column families together */
-		HashMap<String, ArrayList<Column>> map = new HashMap<>();
-		
-		for(int i=3;i<args.length;)
+		int cnt=0;
+		Integer rowkey=1;
+//		while(true)
 		{
-			String[] col = args[i].split(":");
-			i++;
-			String value = args[i];
-			i++;
+			PutRequest.Builder putRequest = PutRequest.newBuilder();
+			putRequest.setTableName(tableName);
+//			putRequest.setRowkey(args[2]);
+			putRequest.setRowkey(rowkey.toString());
 			
-			Column.Builder column = Column.newBuilder();
-			column.setColName(col[1]);
+			/* club all column families together */
+			HashMap<String, ArrayList<Column>> map = new HashMap<>();
 			
-			Cell.Builder cell = Cell.newBuilder();
-			cell.setColValue(value);
-			cell.setTimestamp(new Date().getTime());
-			
-			column.addCells(cell.build());
-			
-			if (map.get(col[0]) != null)
+			for(int i=3;i<args.length;)
 			{
-				map.get(col[0]).add(column.build());
-			}else
-			{
-				ArrayList<Column> cols = new ArrayList<>();
-				cols.add(column.build());
-				map.put(col[0],cols);
+				String[] col = args[i].split(":");
+				i++;
+				String value = args[i];
+				i++;
+				
+				Column.Builder column = Column.newBuilder();
+				column.setColName(col[1]);
+				
+				Cell.Builder cell = Cell.newBuilder();
+				cell.setColValue(value);
+				cell.setTimestamp(new Date().getTime());
+				
+				column.addCells(cell.build());
+				
+				if (map.get(col[0]) != null)
+				{
+					map.get(col[0]).add(column.build());
+				}else
+				{
+					ArrayList<Column> cols = new ArrayList<>();
+					cols.add(column.build());
+					map.put(col[0],cols);
+				}
+				
 			}
 			
-		}
-		
-		
-		
-		
-		for (Entry<String, ArrayList<Column>> entry : map.entrySet())
-		{
 			
-			ColumnFamily.Builder cFamily = ColumnFamily.newBuilder();
-			cFamily.setName(entry.getKey());
-			cFamily.addAllColumns(entry.getValue());
 			
-			putRequest.addColFamily(cFamily);
 			
-		}
+			for (Entry<String, ArrayList<Column>> entry : map.entrySet())
+			{
+				
+				ColumnFamily.Builder cFamily = ColumnFamily.newBuilder();
+				cFamily.setName(entry.getKey());
+				cFamily.addAllColumns(entry.getValue());
+				
+				putRequest.addColFamily(cFamily);
+				
+			}
 
-	
 		
-		
-		//put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’ 
-		
-		byte[] res;
-		try {
-			res = rsStub.put(putRequest.build().toByteArray());
-			PutResponse putResponse = PutResponse.parseFrom(res);
-			if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
-			{
-				System.out.println("suxxess");
-			}else
-			{
-				System.out.println("failde");
+			
+			//put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’ 
+			
+			byte[] res;
+			try {
+				res = rsStub.put(putRequest.build().toByteArray());
+				PutResponse putResponse = PutResponse.parseFrom(res);
+				if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
+				{
+					System.out.println("Success");
+				}else
+				{
+					System.out.println("Failure");
+				}
+			
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidProtocolBufferException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			System.out.println(cnt);
+			rowkey++;
+			cnt++;
+
 		}
+		
+		
+
 		
 		
 	}
