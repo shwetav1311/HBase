@@ -115,7 +115,7 @@ public class GetRow {
 		ListFile listFile = new ListFile(tableName+HBaseConstants.FILE_SEPARATOR+startKey);
 		List<String> listNames = listFile.list();
 		
-		System.out.println("List files"+listNames);
+//		System.out.println("List files"+listNames);
 		
 		List<HFile> hList = new ArrayList<>();
 		
@@ -270,7 +270,7 @@ public class GetRow {
 			
 			fis.close();
 			
-			System.out.println("SequenceID : " + Converter.hexToDec(new String(bs, StandardCharsets.UTF_8)));
+//			System.out.println("SequenceID : " + Converter.hexToDec(new String(bs, StandardCharsets.UTF_8)));
 			
 			fis = new FileInputStream(file);
 			fis.skip(8);

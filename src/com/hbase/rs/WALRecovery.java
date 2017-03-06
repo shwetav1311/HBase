@@ -137,7 +137,7 @@ public class WALRecovery {
 		ListFile listFile = new ListFile(tableName+HBaseConstants.FILE_SEPARATOR+"0");
 		List<String> listNames = listFile.list();
 		
-		System.out.println("List files"+listNames);
+//		System.out.println("List files"+listNames);
 		
 		List<HFile> hList = new ArrayList<>();
 		
@@ -240,9 +240,9 @@ public class WALRecovery {
 		 FileInputStream fis = null;
 		 
 		 try {
-			 System.out.println("Searching sequenceID "+seqID);
+//			 System.out.println("Searching sequenceID "+seqID);
 			 
-			 System.out.println("Reading "+localWal);
+//			 System.out.println("Reading "+localWal);
 			
 			fis = new FileInputStream(localWal);
 			
@@ -259,10 +259,10 @@ public class WALRecovery {
 				}
 				
 				String str = new String(bs, StandardCharsets.UTF_8);
-				System.out.println("The length we are looking for is "+str);
+
 				int len = Converter.hexToDec(str);
 				
-				System.out.println("Length ::" + len);
+		
 				
 				byte[] data = new byte[len];
 			
@@ -272,7 +272,7 @@ public class WALRecovery {
 				/** wal entry is here.. WALEntry consists of: seqID, rsID, putrequest **/ 
 				WalEntry trans = WalEntry.parseFrom(data);
 				
-				System.out.println("WAL seqID: "+trans.getSeqID()+" My SeqID "+seqID);
+//				System.out.println("WAL seqID: "+trans.getSeqID()+" My SeqID "+seqID);
 					
 				if(Integer.parseInt(trans.getSeqID()) > seqID && trans.getLogEntry().getTableName().equals(tableName) )
 				{
@@ -280,7 +280,7 @@ public class WALRecovery {
 					
 					int local_seq= RSDriver.getSeqID();
 					region.insertRow(trans.getLogEntry(),local_seq);
-					System.out.println("Recovering row");
+//					System.out.println("Recovering row");
 				}
 				
 				lastSeqID = Integer.parseInt(trans.getSeqID());

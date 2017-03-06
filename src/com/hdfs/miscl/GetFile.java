@@ -195,7 +195,7 @@ public class GetFile implements Runnable{
 					
 					
 					String str = new String(dataOut);			
-					System.out.print(str);
+//					System.out.print(str);
 					//fileWriteObj.writeonly(str);
 					fileWriteObj.writeBytes(dataOut);
 

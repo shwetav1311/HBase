@@ -85,7 +85,7 @@ public class RSDriver implements IRegionServer {
 			e.printStackTrace();
 		}
 		
-		String tableName = "Politics";
+		String tableName = "Movies";
 		if(recFlag==1)
 			testRecovery(tableName);
 		
