@@ -82,7 +82,19 @@ message IndexList
 message WalEntry
 {
 	//followed by 8 bit field in the beginning
-	optional string seqID = 1;
+	optional string seqID = 1; 
 	optional string rsID = 2;
 	optional PutRequest logEntry = 3;
 }
+
+message LoadRegionRequest
+{
+	optional string tableName = 1;
+	optional bool isCreate = 2; // (call from HMaster) if true create a new table , if false perfrom recovery
+}
+
+message LoadRegionResponse
+{
+	optional int32 status = 1;
+}
+
