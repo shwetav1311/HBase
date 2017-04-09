@@ -8,13 +8,25 @@ import java.util.concurrent.Future;
 
 import org.apache.zookeeper.KeeperException;
 
+import com.hbase.miscl.HBaseConstants;
+
+
+/*
+ * Start the thread for creating znodes
+ *  */
+
 public class Runner {
+	@SuppressWarnings("static-access")
 	public static void start (String ip,String port,int id_) throws IOException, InterruptedException, KeeperException {
-		 final int id = id_;
-		final String zkURL = "localhost";
+		final int id = id_;
+		final String zkURL = HBaseConstants.ZOOKEEPER_IP;
 		final ExecutorService service = Executors.newSingleThreadExecutor();
-		final Future<?> status = service.submit(new Node(id, zkURL,ip,port));
 		
+		Node node = new Node(id, zkURL, ip, port);
+		
+		final Future<?> status = service.submit(node);
+		new Thread().sleep(1000);
+				
 		try {
 			status.get();
 		} catch (InterruptedException | ExecutionException e) {
