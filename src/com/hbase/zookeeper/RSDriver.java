@@ -16,10 +16,11 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 
+import com.hbase.rs.IRegionServer;
 import com.hbase.zookeeper.*;
 
 
-public class RSDriver implements IRegionServerTemp{
+public class RSDriver implements IRegionServer{
 	public static String ip="127.0.0.1";
 	public static String port="10001";
 	public static int id;
@@ -42,7 +43,7 @@ public class RSDriver implements IRegionServerTemp{
 		try {
 			
 			Registry register=LocateRegistry.createRegistry(10000+id);
-			IRegionServerTemp stub = (IRegionServerTemp) UnicastRemoteObject.exportObject(obj,10000+id);
+			IRegionServer stub = (IRegionServer) UnicastRemoteObject.exportObject(obj,10000+id);
 			register.rebind("RegionServer", stub);
 			
 			System.out.println("Region server started succesfully");
@@ -136,7 +137,7 @@ public class RSDriver implements IRegionServerTemp{
 		//System.out.println(Assignedreg_port);
 				//"10001";
 		String id="1";  // Region Server ID
-		IRegionServerTemp rsStub=null;
+		IRegionServer rsStub=null;
 		Registry registry = null;
 		try {
 			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
@@ -148,15 +149,15 @@ public class RSDriver implements IRegionServerTemp{
 		
 			try 
 			{
-			  rsStub = (IRegionServerTemp) registry.lookup("RegionServer");
+			  rsStub = (IRegionServer) registry.lookup("RegionServer");
 			}catch (NotBoundException | RemoteException e) {
 				// TODO Auto-generated catch block
 				System.out.println("Could not find Region Server");
 				e.printStackTrace();
 			} 	
 		
-			boolean res = rsStub.loadRegion(tableName,true);
-			Node.zoo.getChildren("/hbase/Meta",true);
+//			boolean res = rsStub.loadRegion(tableName,true);
+//			Node.zoo.getChildren("/hbase/Meta",true);
 		
 		//master will allocate table to region server 
 		// fetch ip port of that region server.
@@ -167,15 +168,15 @@ public class RSDriver implements IRegionServerTemp{
 		// flag=0 create , flag=1 perform recovery
 		
 		
-		if (!res)
-			System.out.println("Wal and table in zookeeper not successful");
-		else
-			System.out.println("wal and table in zookeeper is successful");
+//		if (!res)
+//			System.out.println("Wal and table in zookeeper not successful");
+//		else
+//			System.out.println("wal and table in zookeeper is successful");
 	
 	}
 
 
-	@Override
+	
 	public boolean loadRegion(String tableName, boolean flag) throws IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		System.out.println("Load Started on random region server ......");
@@ -234,6 +235,36 @@ public class RSDriver implements IRegionServerTemp{
 			return false;
 		else
 		return true;
+	}
+
+	@Override
+	public byte[] create(byte[] inp) throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public byte[] put(byte[] inp) throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public byte[] get(byte[] inp) throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public byte[] scan(byte[] inp) throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public byte[] loadRegion(byte[] inp) throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	
