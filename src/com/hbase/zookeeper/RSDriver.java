@@ -24,7 +24,7 @@ public class RSDriver implements IRegionServer{
 	public static String ip="127.0.0.1";
 	public static String port="10001";
 	public static int id;
-	static public List<String> tables = new ArrayList<>();
+//	static public List<String> tables = new ArrayList<>();
 	public static void main(String[] args) throws IOException, InterruptedException, KeeperException {
 		
 		
@@ -197,7 +197,7 @@ public class RSDriver implements IRegionServer{
 //		
 			System.out.println("[Process: " + id
 					+ "] Process node created with path: " + metatablePath);
-			tables=Node.zoo.getChildren("/hbase/Meta",true);
+			List<String> tables = Node.zoo.getChildren("/hbase/Meta",true);
 			
 			}
 			catch(Exception e){

@@ -1,12 +1,18 @@
 package com.hbase.zookeeper;
 
 import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -15,7 +21,14 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.hbase.miscl.HBaseConstants;
+import com.hbase.miscl.HBase.LoadRegionRequest;
+import com.hbase.miscl.HBase.LoadRegionResponse;
+import com.hbase.rs.IRegionServer;
 import com.hbase.zookeeper.ZookeeperConstants;
+import com.hdfs.miscl.HDFSConstants;
 
 public class Node implements Runnable {
 
@@ -34,7 +47,13 @@ public class Node implements Runnable {
 	String ip;
 	String port;
 	public Set<String> followers = new HashSet<String>();
+	private static List<String> tableList = new ArrayList<>(); /* only used by master */
 	
+	public static void addTable(String tableName) {
+		
+		tableList.add(tableName);
+	}
+
 	public int getLeader()
 	{
 		return leader;
@@ -249,83 +268,144 @@ public class Node implements Runnable {
 	}
 	
 	public class MetaWatcher implements Watcher {
-
+	
 		@Override
 		public void process(WatchedEvent event) {
-			if(leader==0)
-			{
-				// Other nodes which are not leaders 				
+			if (leader == 0) {
+				// Other nodes which are not leaders
 			}
-			//System.out.println("meta event happened  ");
-			if(leader==1)
-			{
-				
-				System.out.println("Event received:   " + event);
+			// System.out.println("meta event happened ");
+			if (leader == 1) {
 
+				System.out.println("Event received:   " + event.getType());
+				
+				
 				try {
-					List<String> childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_META,false);
-					
-                     for (String child : childNodeList) 
-						
-					{
-                    	 
-						   //System.out.println(child);
-						if (!RSDriver.tables.contains(child)) {
+					List<String> childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_META, false);
+
+					for (String child : childNodeList) {
+
+						// System.out.println(child);
+						if (!tableList.contains(child)) {
 							System.out.println("New table added:     " + child);
-						}
-						else
-						{if(childNodeList.size()!=0)
-							RSDriver.tables.remove(child);
+						} else {
+							if (childNodeList.size() != 0)
+								tableList.remove(child);
 						}
 					}
-                     RSDriver object=new RSDriver();
-                     //System.out.println("here I am");
-                     //System.out.println("No.of children"+RSDriver.tables.size());
-                     int table_size=RSDriver.tables.size();
-                    if (RSDriver.tables.size() > 0) {
- 						for(int i=0;i<table_size;i++){
- 							String node_child =RSDriver.tables.get(0);
-							System.out.println("table deleted in meta:   " 
-									+ node_child);
-							
-							
-							System.out.println("The Wal filename present in:--"+"/hbase/wal/"+node_child);
+
+					int table_size = tableList.size();
+					if (tableList.size() > 0) {
+						for (int i = 0; i < table_size; i++) {
+							String node_child = tableList.get(0);
+							System.out.println("table deleted in meta:   " + node_child);
+
+							System.out.println("The Wal filename present in:--" + "/hbase/wal/" + node_child);
 							System.out.println("Assigning the delted table to another region server");
-							object.create(node_child);
-							RSDriver.tables.remove(node_child);
-							//System.out.println("No.of children"+RSDriver.tables.size());
- 						}
- 					}
-                     
-                     RSDriver.tables.clear();
- 					childNodeList = zoo.getChildren(
- 							ZookeeperConstants.HBASE_META,false);
- 					for(int i=0;i<childNodeList.size();i++)
- 						RSDriver.tables.add(childNodeList.get(i));
-                     
-                     
-                     
-				} catch (KeeperException | InterruptedException | IOException e) {
+							assignTableAfterFailure(node_child);
+							tableList.remove(node_child);
+							
+						}
+					}
+
+					tableList.clear();
+					childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_META, false);
+					for (int i = 0; i < childNodeList.size(); i++)
+						tableList.add(childNodeList.get(i));
+
+				} catch (KeeperException | InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
+				try {
 
-			
-             try {
-					
-					zoo.getChildren(ZookeeperConstants.HBASE_META,new MetaWatcher());
-					
+					zoo.getChildren(ZookeeperConstants.HBASE_META, new MetaWatcher());
+
 				} catch (KeeperException | InterruptedException e) {
-					
+
 					e.printStackTrace();
 				}
-				}
-				
-			}
-//			
+			} // end-if
+
+		}
+	//			
 		}
 	
+	
+	
+	
+	public void assignTableAfterFailure(String tableName) throws KeeperException, InterruptedException {
+		// TODO Auto-generated method stub
+		
+		System.out.println("Assigning after failure Tablename : "+tableName);
+		int result = 0;
+		List<String> childNodePaths = zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, false);
+		int size=childNodePaths.size()-1;
+		Collections.sort(childNodePaths);
+		
+		Random rand = new Random();
+
+		int  n = rand.nextInt(size) +1;
+		
+		String Assigned_reg=childNodePaths.get(n);
+		
+		Assigned_reg=ZookeeperConstants.LEADER_ELECTION_ROOT_NODE+"/"+Assigned_reg;
+		byte[] bs=zoo.getData(Assigned_reg,false,null);
+		String str = new String(bs);
+		System.out.println("The random ip and port of Region server:-      "+str);
+		StringTokenizer st = new StringTokenizer(str,":");  
+		String Assignedreg_ip=st.nextToken();
+		
+		String Assignedreg_port=st.nextToken();
+		
+		IRegionServer rsStub=null;
+		Registry registry = null;
+		try {
+			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		}
+		try {
+			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+			rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER);
+			
+			LoadRegionRequest.Builder reqObj = LoadRegionRequest.newBuilder();
+			reqObj.setTableName(tableName);
+			reqObj.setIsCreate(false);
+			
+			byte[] responseArray = rsStub.loadRegion(reqObj.build().toByteArray());
+			
+			LoadRegionResponse respObj = null;
+			
+			try {
+				respObj = LoadRegionResponse.parseFrom(responseArray);
+			} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			result = respObj.getStatus();
+		}
+		catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			result = HDFSConstants.STATUS_FAILED;
+			
+			
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			result = HDFSConstants.STATUS_FAILED;
+		}
+		
+		
+		System.out.println("Load Region Status : "+ result);
+		
+	}
+
 	/**
 	 * 
 	 * @param base
