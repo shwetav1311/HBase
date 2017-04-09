@@ -38,9 +38,9 @@ public class ListFile {
 		
 		Registry registry;
 		try {
-			registry = LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
+			registry = LocateRegistry.getRegistry(HDFSConstants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			INameNode nameStub;
-			nameStub=(INameNode) registry.lookup(Constants.NAME_NODE);
+			nameStub=(INameNode) registry.lookup(HDFSConstants.NAME_NODE);
 			
 			byte[] responseArray = nameStub.list(listFileReqObj.build().toByteArray());
 			try {

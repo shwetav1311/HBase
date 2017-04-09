@@ -18,7 +18,7 @@ import com.hbase.miscl.HBase.IndexEntry;
 import com.hbase.miscl.HBase.IndexList;
 import com.hbase.miscl.HBase.Row;
 import com.hbase.miscl.HBaseConstants;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
 import com.hdfs.miscl.GetFile;
 import com.hdfs.miscl.ListFile;
 
@@ -159,14 +159,14 @@ public class GetRow {
 			String indexFile = "index_"+list.fileName;
 			
 			
-			File f = new File(Constants.OUTPUT_FILE+indexFile);
+			File f = new File(HDFSConstants.OUTPUT_FILE+indexFile);
 			if(f.exists()) { 
 			    // do something
 				
 //				System.out.println("Index file Already There "+indexFile);
 			}else
 			{
-				GetFile getFile1 = new GetFile(indexFile, Constants.OUTPUT_FILE+indexFile);
+				GetFile getFile1 = new GetFile(indexFile, HDFSConstants.OUTPUT_FILE+indexFile);
 				Thread thread1 = new Thread(getFile1);
 				thread1.start();
 				
@@ -183,21 +183,21 @@ public class GetRow {
 			
 		
 			
-			Integer offset = returnOffsetHFile(Constants.OUTPUT_FILE+indexFile, rowKey);
+			Integer offset = returnOffsetHFile(HDFSConstants.OUTPUT_FILE+indexFile, rowKey);
 			
 //			System.out.println("Offset  to be read is"+offset);
 			
 			if(offset!=-1)
 			{
 				
-				File f1 = new File(Constants.OUTPUT_FILE+list.fileName);
+				File f1 = new File(HDFSConstants.OUTPUT_FILE+list.fileName);
 				if(f1.exists()) { 
 				    // do something
 //					System.out.println("Already There");
 					
 				}else
 				{
-					GetFile getFile  = new GetFile(list.fileName, Constants.OUTPUT_FILE+list.fileName);
+					GetFile getFile  = new GetFile(list.fileName, HDFSConstants.OUTPUT_FILE+list.fileName);
 					
 					Thread thread = new Thread(getFile);
 					thread.start();
@@ -213,7 +213,7 @@ public class GetRow {
 				
 				
 				
-				List<ColumnFamily> cFamily = getRowFromHFile(Constants.OUTPUT_FILE+list.fileName, offset);
+				List<ColumnFamily> cFamily = getRowFromHFile(HDFSConstants.OUTPUT_FILE+list.fileName, offset);
 				
 				for(ColumnFamily c : cFamily)
 				{
@@ -232,7 +232,7 @@ public class GetRow {
 			
 			}else
 			{
-				System.out.println("Index not found in "+Constants.OUTPUT_FILE+indexFile);
+				System.out.println("Index not found in "+HDFSConstants.OUTPUT_FILE+indexFile);
 			}
 			
 			

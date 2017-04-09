@@ -4,6 +4,7 @@ public final class HBaseConstants {
 	
 	public static final String  RS_DRIVER = "RegionServer_";  
 	public static final String  RS_DRIVER_IP = "127.0.0.1";	
+	public static final String ZOOKEEPER_IP = "127.0.0.1";
 	public static final Integer  RS_PORT = 9000;
 	
 	public static final String  FILE_SEPARATOR = "_";
@@ -19,7 +20,7 @@ public final class HBaseConstants {
 	
 	public static final Integer APPEND_STATUS_SUCCESS = 1;
 	public static final Integer APPEND_STATUS_FAILURE = 0;
-
+	
 	
 	
 }

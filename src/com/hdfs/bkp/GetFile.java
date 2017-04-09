@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hdfs.datanode.IDataNode;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
 import com.hdfs.miscl.FileWriterClass;
 import com.hdfs.miscl.Hdfs.BlockLocationRequest;
 import com.hdfs.miscl.Hdfs.BlockLocationResponse;
@@ -44,7 +44,7 @@ public class GetFile implements Runnable{
 	public void run() {
 		// TODO Auto-generated method stub
 		
-		this.status=Constants.STATUS_SUCCESS;
+		this.status=HDFSConstants.STATUS_SUCCESS;
 		OpenFileRequest.Builder openFileReqObj = OpenFileRequest.newBuilder();
 		openFileReqObj.setFileName(fileName);		
 		openFileReqObj.setForRead(true);
@@ -58,18 +58,18 @@ public class GetFile implements Runnable{
 		try {
 			//here obtain the IP, port of the namenode, so that we can register to the services 
 			//provided by the namenode
-			Registry registry=LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
+			Registry registry=LocateRegistry.getRegistry(HDFSConstants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			INameNode nameStub;
-			nameStub=(INameNode) registry.lookup(Constants.NAME_NODE);
+			nameStub=(INameNode) registry.lookup(HDFSConstants.NAME_NODE);
 			responseArray = nameStub.openFile(openFileReqObj.build().toByteArray());
 			
 			try {
 				//Get is the read functionality from the HDFS file system
 				OpenFileResponse responseObj = OpenFileResponse.parseFrom(responseArray);
-				if(responseObj.getStatus()==Constants.STATUS_NOT_FOUND)
+				if(responseObj.getStatus()==HDFSConstants.STATUS_NOT_FOUND)
 				{
 					System.out.println("File not found fatal error");
-					this.status=Constants.STATUS_NOT_FOUND;
+					this.status=HDFSConstants.STATUS_NOT_FOUND;
 					return;
 				}
 				
@@ -98,10 +98,10 @@ public class GetFile implements Runnable{
 				 * blocks that were sent by blockNums
 				 */
 				
-				if(blockLocResObj.getStatus()==Constants.STATUS_FAILED)
+				if(blockLocResObj.getStatus()==HDFSConstants.STATUS_FAILED)
 				{
 					System.out.println("Fatal error!");
-					this.status=Constants.STATUS_FAILED;
+					this.status=HDFSConstants.STATUS_FAILED;
 					return;
 				}
 				
@@ -121,7 +121,7 @@ public class GetFile implements Runnable{
 					if(dataNodes==null || dataNodes.size()==0)
 					{
 						System.out.println("All nodes are down :( ");
-						this.status=Constants.STATUS_FAILED;
+						this.status=HDFSConstants.STATUS_FAILED;
 						return;
 					}
 					
@@ -151,7 +151,7 @@ public class GetFile implements Runnable{
 							port = thisDataNode.getPort();
 														
 							Registry registry2=LocateRegistry.getRegistry(ip,port);					
-							dataStub = (IDataNode) registry2.lookup(Constants.DATA_NODE_ID);
+							dataStub = (IDataNode) registry2.lookup(HDFSConstants.DATA_NODE_ID);
 							gotDataNodeFlag=true;
 						}
 						catch (RemoteException e) {
@@ -170,7 +170,7 @@ public class GetFile implements Runnable{
 					if(dataNodeCounter == dataNodes.size())
 					{
 						System.out.println("All data nodes are down :( ");
-						this.status=Constants.STATUS_FAILED;
+						this.status=HDFSConstants.STATUS_FAILED;
 						return;
 					}
 					
@@ -184,10 +184,10 @@ public class GetFile implements Runnable{
 					responseArray = dataStub.readBlock(readBlockReqObj.build().toByteArray());
 					ReadBlockResponse readBlockResObj = ReadBlockResponse.parseFrom(responseArray);
 					
-					if(readBlockResObj.getStatus()==Constants.STATUS_FAILED)
+					if(readBlockResObj.getStatus()==HDFSConstants.STATUS_FAILED)
 					{
 						System.out.println("In method openFileGet(), readError");
-						this.status=Constants.STATUS_FAILED;
+						this.status=HDFSConstants.STATUS_FAILED;
 						return;
 					}
 					
@@ -204,12 +204,12 @@ public class GetFile implements Runnable{
 			} catch (InvalidProtocolBufferException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				this.status=Constants.STATUS_FAILED;
+				this.status=HDFSConstants.STATUS_FAILED;
 				
 			}
 		} catch (NotBoundException e) {
 			System.out.println("Exception caught: NotBoundException ");			
-			this.status=Constants.STATUS_FAILED;
+			this.status=HDFSConstants.STATUS_FAILED;
 			
 		} catch (RemoteException e2) {
 			// TODO Auto-generated catch block

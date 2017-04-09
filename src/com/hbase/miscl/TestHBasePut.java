@@ -12,7 +12,7 @@ import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBase.PutResponse;
 import com.hbase.rs.IRegionServer;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
 
 public class TestHBasePut {
 
@@ -92,7 +92,7 @@ public class TestHBasePut {
 		try {
 			res = rsStub.put(putRequest.build().toByteArray());
 			PutResponse putResponse = PutResponse.parseFrom(res);
-			if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
+			if (putResponse.getStatus() == HDFSConstants.STATUS_SUCCESS)
 			{
 //				System.out.println("Success");
 				//increment the put response count to meausre the throughput

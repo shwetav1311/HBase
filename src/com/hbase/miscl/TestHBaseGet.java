@@ -13,7 +13,7 @@ import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.GetRequest;
 import com.hbase.miscl.HBase.GetResponse;
 import com.hbase.rs.IRegionServer;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
 
 public class TestHBaseGet {
 
@@ -83,7 +83,7 @@ public class TestHBaseGet {
 			res = rsStub.get(getRequest.build().toByteArray());
 			GetResponse getResponse = GetResponse.parseFrom(res);
 			
-			if(getResponse.getStatus()==Constants.STATUS_SUCCESS)
+			if(getResponse.getStatus()==HDFSConstants.STATUS_SUCCESS)
 			{
 //				System.out.print("GET KEY SUCCESS");
 //				System.out.println(getResponse.getColFamilyCount());

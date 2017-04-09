@@ -21,7 +21,7 @@ import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBase.PutResponse;
 import com.hbase.miscl.HBaseConstants;
 import com.hbase.rs.IRegionServer;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
 
 public class ClientDriverTest {
 
@@ -48,7 +48,7 @@ public class ClientDriverTest {
 		// TODO Auto-generated method stub
 		
 		
-		Integer entries=101;
+		Integer entries=1001;
 		Integer numTables=0;
 		
 		
@@ -78,7 +78,7 @@ public class ClientDriverTest {
 //		String tableName = input[1];
 		
 		long startTime = System.currentTimeMillis();
-		while(entries<=200)
+		while(entries<=1100)
 		{
 			
 			for(int i=0;i<numTables;i++)
@@ -152,11 +152,11 @@ public class ClientDriverTest {
 			byte[] res = rsStub.create(req.build().toByteArray());
 			CreateTableResponse crTableResponse = CreateTableResponse.parseFrom(res);
 			
-			if (crTableResponse.getStatus()==Constants.STATUS_SUCCESS)
+			if (crTableResponse.getStatus()==HDFSConstants.STATUS_SUCCESS)
 			{
 				System.out.println("Table created successfully");
 				
-			}else if ((crTableResponse.getStatus()==Constants.STATUS_NOT_FOUND))
+			}else if ((crTableResponse.getStatus()==HDFSConstants.STATUS_NOT_FOUND))
 			{
 				System.out.println("Table already exists");
 			}else
@@ -237,7 +237,7 @@ public class ClientDriverTest {
 			try {
 				res = rsStub.put(putRequest.build().toByteArray());
 				PutResponse putResponse = PutResponse.parseFrom(res);
-				if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
+				if (putResponse.getStatus() == HDFSConstants.STATUS_SUCCESS)
 				{
 //					System.out.println("Success");
 					
@@ -307,7 +307,7 @@ public class ClientDriverTest {
 			res = rsStub.get(getRequest.build().toByteArray());
 			GetResponse getResponse = GetResponse.parseFrom(res);
 			
-			if(getResponse.getStatus()==Constants.STATUS_SUCCESS)
+			if(getResponse.getStatus()==HDFSConstants.STATUS_SUCCESS)
 			{
 				System.out.print("success");
 				System.out.println(getResponse.getColFamilyCount());

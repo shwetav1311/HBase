@@ -42,7 +42,7 @@ public class GetFile implements Runnable{
 	public void run() {
 		// TODO Auto-generated method stub
 		
-		this.status=Constants.STATUS_SUCCESS;
+		this.status=HDFSConstants.STATUS_SUCCESS;
 		OpenFileRequest.Builder openFileReqObj = OpenFileRequest.newBuilder();
 		openFileReqObj.setFileName(fileName);		
 		openFileReqObj.setForRead(true);
@@ -56,15 +56,15 @@ public class GetFile implements Runnable{
 		try {
 			//here obtain the IP, port of the namenode, so that we can register to the services 
 			//provided by the namenode
-			Registry registry=LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
+			Registry registry=LocateRegistry.getRegistry(HDFSConstants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			INameNode nameStub;
-			nameStub=(INameNode) registry.lookup(Constants.NAME_NODE);
+			nameStub=(INameNode) registry.lookup(HDFSConstants.NAME_NODE);
 			responseArray = nameStub.openFile(openFileReqObj.build().toByteArray());
 			
 			try {
 				//Get is the read functionality from the HDFS file system
 				OpenFileResponse responseObj = OpenFileResponse.parseFrom(responseArray);
-				if(responseObj.getStatus()==Constants.STATUS_NOT_FOUND)
+				if(responseObj.getStatus()==HDFSConstants.STATUS_NOT_FOUND)
 				{
 					System.out.println("File not found fatal error");
 					System.exit(0);
@@ -95,7 +95,7 @@ public class GetFile implements Runnable{
 				 * blocks that were sent by blockNums
 				 */
 				
-				if(blockLocResObj.getStatus()==Constants.STATUS_FAILED)
+				if(blockLocResObj.getStatus()==HDFSConstants.STATUS_FAILED)
 				{
 					System.out.println("Fatal error!");
 					System.exit(0);
@@ -146,7 +146,7 @@ public class GetFile implements Runnable{
 							port = thisDataNode.getPort();
 														
 							Registry registry2=LocateRegistry.getRegistry(ip,port);					
-							dataStub = (IDataNode) registry2.lookup(Constants.DATA_NODE_ID);
+							dataStub = (IDataNode) registry2.lookup(HDFSConstants.DATA_NODE_ID);
 							gotDataNodeFlag=true;
 						}
 						catch (RemoteException e) {
@@ -178,7 +178,7 @@ public class GetFile implements Runnable{
 					responseArray = dataStub.readBlock(readBlockReqObj.build().toByteArray());
 					ReadBlockResponse readBlockResObj = ReadBlockResponse.parseFrom(responseArray);
 					
-					if(readBlockResObj.getStatus()==Constants.STATUS_FAILED)
+					if(readBlockResObj.getStatus()==HDFSConstants.STATUS_FAILED)
 					{
 						System.out.println("In method openFileGet(), readError");
 						System.exit(0);

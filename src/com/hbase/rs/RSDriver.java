@@ -14,8 +14,16 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
+import java.util.StringTokenizer;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.server.auth.IPAuthenticationProvider;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.ColumnFamily;
@@ -23,10 +31,15 @@ import com.hbase.miscl.HBase.CreateTableRequest;
 import com.hbase.miscl.HBase.CreateTableResponse;
 import com.hbase.miscl.HBase.GetRequest;
 import com.hbase.miscl.HBase.GetResponse;
+import com.hbase.miscl.HBase.LoadRegionRequest;
+import com.hbase.miscl.HBase.LoadRegionResponse;
 import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBase.PutResponse;
 import com.hbase.miscl.HBaseConstants;
-import com.hdfs.miscl.Constants;
+import com.hbase.zookeeper.Node;
+import com.hbase.zookeeper.Runner;
+import com.hbase.zookeeper.ZookeeperConstants;
+import com.hdfs.miscl.HDFSConstants;
 import com.hdfs.miscl.PutFile;
 
 public class RSDriver implements IRegionServer {
@@ -43,8 +56,6 @@ public class RSDriver implements IRegionServer {
 	public static void main(String[] args)
 	{
 		
-		
-		
 		/** WAL object, with WAL file Name **/
 		walObj = new WAL(HBaseConstants.REGION_SERVER+id+HBaseConstants.WAL_SUFFIX);
 		
@@ -53,8 +64,6 @@ public class RSDriver implements IRegionServer {
 		regionMap = new HashMap<>();
 		
 		id=Integer.parseInt(args[0]);
-		
-		recFlag = Integer.parseInt(args[1]);
 		
 		System.out.println("Region server Binding to Registry...");
 		
@@ -85,44 +94,41 @@ public class RSDriver implements IRegionServer {
 			e.printStackTrace();
 		}
 		
-		String tableName = "Movies";
-		if(recFlag==1)
-			testRecovery(tableName);
-		
+			
 		
 		
 	}
 	
-	public static void testRecovery(String tableName)
-	{
-		String id="1";  // Region Server ID
-		Registry registry = null;
-		try {
-			registry = LocateRegistry.getRegistry(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+Integer.parseInt(id));
-		} catch (RemoteException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		
-		}
-		
-		
-		IRegionServer rsStub = null;
-			try 
-			{
-				rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER+id);
-			}catch (NotBoundException | RemoteException e) {
-				// TODO Auto-generated catch block
-				System.out.println("Could not find Region Server");
-				e.printStackTrace();
-			} 	
-		
-			 try {
-				rsStub.loadRegion(tableName, false);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	}
+//	public static void testRecovery(String tableName)
+//	{
+//		String id="1";  // Region Server ID
+//		Registry registry = null;
+//		try {
+//			registry = LocateRegistry.getRegistry(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+Integer.parseInt(id));
+//		} catch (RemoteException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		
+//		}
+//		
+//		
+//		IRegionServer rsStub = null;
+//			try 
+//			{
+//				rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER+id);
+//			}catch (NotBoundException | RemoteException e) {
+//				// TODO Auto-generated catch block
+//				System.out.println("Could not find Region Server");
+//				e.printStackTrace();
+//			} 	
+//		
+//			 try {
+////				rsStub.loadRegion(tableName, false);
+//			} catch (RemoteException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//	}
 	
 	/** 
 	 * export registry object
@@ -135,22 +141,27 @@ public class RSDriver implements IRegionServer {
 			
 			Registry register=LocateRegistry.createRegistry(HBaseConstants.RS_PORT+id);
 			IRegionServer stub = (IRegionServer) UnicastRemoteObject.exportObject(obj,HBaseConstants.RS_PORT+id);
-			register.rebind(HBaseConstants.RS_DRIVER+id, stub);
+			register.rebind(HBaseConstants.RS_DRIVER, stub);
 			
 			System.out.println("Region server started succesfully");
 			
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}	
+		
+		connectToZoo(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+id+"",id);
 	}
 
+	/**
+	 * Need to call load region from create, for a randomly chosen region server
+	 */
 	@Override
 	public byte[] create(byte[] inp) throws RemoteException {
 		// TODO Auto-generated method stub
 		
 		CreateTableResponse.Builder res = CreateTableResponse.newBuilder();
-		res.setStatus(Constants.STATUS_FAILED);
+		res.setStatus(HDFSConstants.STATUS_FAILED);
 		
 		try {
 			CreateTableRequest req  = CreateTableRequest.parseFrom(inp);
@@ -176,19 +187,20 @@ public class RSDriver implements IRegionServer {
 			int status = createTableHDFS(tableName);
 			
 //			boolean success = (new File(tableName)).delete();
+//			
+//			if(regionMap.get(tableName) == null)
+//			{
+//				System.out.println("table not found");
+//				
+//				ArrayList<Region> arr = new ArrayList<>();
+//				Region region = new Region(tableName, "0");
+//				arr.add(region);
+//				regionMap.put(tableName,arr);
+//				
+//			}
 			
-			if(regionMap.get(tableName) == null)
-			{
-				System.out.println("table not found");
-				
-				ArrayList<Region> arr = new ArrayList<>();
-				Region region = new Region(tableName, "0");
-				arr.add(region);
-				regionMap.put(tableName,arr);
-				
-			}
-		    
-			
+			chooseRSandLoad(tableName);
+		    			
 			res.setStatus(status);
 			
 			return res.build().toByteArray();
@@ -225,12 +237,12 @@ public class RSDriver implements IRegionServer {
 		System.out.println("---------------Back to put---------------");
 		
 		PutResponse.Builder res = PutResponse.newBuilder();
-		res.setStatus(Constants.STATUS_SUCCESS);
+		res.setStatus(HDFSConstants.STATUS_SUCCESS);
 		
 		
 		if(stat==HBaseConstants.APPEND_STATUS_FAILURE)
 		{
-			res.setStatus(Constants.STATUS_FAILED);
+			res.setStatus(HDFSConstants.STATUS_FAILED);
 			return res.build().toByteArray();
 		}
 		
@@ -267,7 +279,7 @@ public class RSDriver implements IRegionServer {
 		}catch (Exception e)
 		{
 			e.printStackTrace();
-			res.setStatus(Constants.STATUS_FAILED);
+			res.setStatus(HDFSConstants.STATUS_FAILED);
 		}
 		
 		
@@ -304,7 +316,7 @@ public class RSDriver implements IRegionServer {
 				regionMap.put(table,arr);
 			}
 			GetResponse.Builder res = GetResponse.newBuilder();
-			res.setStatus(Constants.STATUS_NOT_FOUND);
+			res.setStatus(HDFSConstants.STATUS_NOT_FOUND);
 			
 			if(regionMap.get(table)!=null)
 			{
@@ -312,7 +324,7 @@ public class RSDriver implements IRegionServer {
 				
 				System.out.println("ans  size"+ ans.size());
 				
-				res.setStatus(Constants.STATUS_SUCCESS);
+				res.setStatus(HDFSConstants.STATUS_SUCCESS);
 				res.addAllColFamily(ans);
 			}	
 				
@@ -347,7 +359,7 @@ public class RSDriver implements IRegionServer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			
-			return Constants.STATUS_FAILED;
+			return HDFSConstants.STATUS_FAILED;
 		}
 		
 		
@@ -395,14 +407,37 @@ public class RSDriver implements IRegionServer {
 	
 
 	@Override
-	public boolean loadRegion(String tableName,boolean callerMethod) throws RemoteException {
+	public byte[] loadRegion(byte[] inp) throws RemoteException {
 		// TODO Auto-generated method stub
 		
-		if(callerMethod == true)
+		LoadRegionRequest loadReq = null;
+		try {
+			loadReq = LoadRegionRequest.parseFrom(inp);
+		} catch (InvalidProtocolBufferException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String tableName = loadReq.getTableName();
+		boolean isCreate = loadReq.getIsCreate();
+		
+		LoadRegionResponse.Builder respObj = LoadRegionResponse.newBuilder();
+		respObj.setStatus(HDFSConstants.STATUS_FAILED);
+				
+//		String tableName,boolean callerMethod
+		
+		
+		
+		if(isCreate == true)
 		{
 			System.out.println("Create table has called by HMaster ");
-			/** create a Region  here and add it to the entry, table to region map **/			
+			
+			/** create a Region  here and add it to the entry, table to region map **/	
+			
+			String walName = HBaseConstants.REGION_SERVER+id+HBaseConstants.WAL_SUFFIX;
+			System.out.println("Wal file name "+walName);
 			createRegion(tableName);
+			createTableInZookeeper(tableName, walName);
 		}
 		else
 		{
@@ -414,11 +449,116 @@ public class RSDriver implements IRegionServer {
 			walObj.getWALName();
 			walObj.downloadAndRecoverWAL();
 			walObj.setWALName();
+			
 		}
+		
+		respObj.setStatus(HDFSConstants.STATUS_SUCCESS);
 				
-		return true;
+		return respObj.build().toByteArray();
 		
 	}
+	
+	public void createTableInZookeeper(String tableName,String walName)
+	{
+		String data = HBaseConstants.RS_DRIVER_IP+":"+(HBaseConstants.RS_PORT+id);
+		
+		Node.createNode(ZookeeperConstants.HBASE_META, tableName, data,0);
+	
+		Node.createNode(ZookeeperConstants.HBASE_WAL, tableName, walName, 1);
+	}
+	
+	public boolean chooseRSandLoad(String tableName)
+	{
+		System.out.println("chooseRSand Load...............");
+		
+		boolean result = false;
+		 
+		List<String> childNodePaths = null;
+		try {
+			childNodePaths = Node.zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, false);
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+		int size=childNodePaths.size()-1;
+		Collections.sort(childNodePaths);
+		
+		Random rand = new Random();
+
+		int  n = rand.nextInt(size) +1;
+		
+		String Assigned_reg=childNodePaths.get(n); // To randomly select a child(new RS) from the list
+		
+		Assigned_reg=com.hbase.zookeeper.ZookeeperConstants.LEADER_ELECTION_ROOT_NODE+"/"+Assigned_reg;
+		
+		byte[] bs = null;
+		try {
+			bs = Node.zoo.getData(Assigned_reg,false,null);// the data is IP:port, false because any update wont generate an event
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+		String str = new String(bs);
+		System.out.println("The random ip and port oion server:-  "+str);
+		
+		StringTokenizer st = new StringTokenizer(str,":");  
+		String Assignedreg_ip=st.nextToken();						
+		String Assignedreg_port=st.nextToken();
+		
+		IRegionServer rsStub=null;
+		Registry registry = null;
+		
+		try {
+			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+			rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER);
+			
+			LoadRegionRequest.Builder reqObj = LoadRegionRequest.newBuilder();
+			reqObj.setTableName(tableName);
+			reqObj.setIsCreate(true);
+			
+			byte[] responseArray = rsStub.loadRegion(reqObj.build().toByteArray());
+			
+			LoadRegionResponse respObj = null;
+			
+			try {
+				respObj = LoadRegionResponse.parseFrom(responseArray);
+			} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			if(respObj.getStatus()==HDFSConstants.STATUS_SUCCESS)
+				result = true;
+						
+			System.out.println("Result for loadRegion "+result);
+		}
+		catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return false;
+			
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+		return result;
+		
+	}
+
 	
 	/**
 	 * Creates a mem-store internally, (in memory structure)
@@ -430,5 +570,22 @@ public class RSDriver implements IRegionServer {
 		ArrayList<Region> arr = new ArrayList<>();
 		arr.add(newRegion);
 		regionMap.put(tableName,arr);
+	}
+	
+	
+	public static void connectToZoo(String ip,String port,int id)
+	{
+		try {
+			Runner.start(ip,port,id);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

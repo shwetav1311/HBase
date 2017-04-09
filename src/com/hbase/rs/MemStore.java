@@ -17,7 +17,7 @@ import com.hbase.miscl.HBase.Column;
 import com.hbase.miscl.HBase.ColumnFamily;
 import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBaseConstants;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
 
 public class MemStore {
 	
@@ -201,7 +201,7 @@ public class MemStore {
 	{
 //		return input_size>HBaseConstants.MEMSTORE_CONTENTS;
 		
-		if(input_size > (Constants.BLOCK_SIZE*0.8))
+		if(input_size > (HDFSConstants.BLOCK_SIZE*0.8))
 		{
 			return true;
 		}else

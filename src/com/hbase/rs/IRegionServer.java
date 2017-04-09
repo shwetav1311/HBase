@@ -1,7 +1,10 @@
 package com.hbase.rs;
 
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+
+import com.hbase.miscl.HBase.LoadRegionRequest;
 
 public interface IRegionServer extends Remote {
 
@@ -17,7 +20,9 @@ public interface IRegionServer extends Remote {
 	/** scan table **/
 	byte[] scan(byte[] inp) throws RemoteException;
 	
-	/** load region **/
+	/** load region 
+	 * @throws InterruptedException 
+	 * @throws IOException **/
 	
-	boolean loadRegion(String tableName,boolean flag) throws RemoteException;
+	byte[] loadRegion(byte[] inp) throws RemoteException;
 }

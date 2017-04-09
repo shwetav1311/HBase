@@ -47,10 +47,10 @@ public class AppendFile  {
 		int fileHandle = 0;
 		
 		try {
-			Registry registry = LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
+			Registry registry = LocateRegistry.getRegistry(HDFSConstants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			INameNode nameStub;
 			int status;
-			nameStub = (INameNode) registry.lookup(Constants.NAME_NODE);
+			nameStub = (INameNode) registry.lookup(HDFSConstants.NAME_NODE);
 			byte[] responseArray = nameStub.openFile(openFileReqObj.build().toByteArray());
 			
 			/**The response Array will contain the FileHandle status and the block numbers **/
@@ -59,7 +59,7 @@ public class AppendFile  {
 			fileHandle = responseObj.getHandle();
 			System.out.println("The file handle is "+fileHandle);
 			
-			if(responseObj.getStatus()==Constants.STATUS_NOT_FOUND||responseObj.getStatus()==Constants.STATUS_FAILED)
+			if(responseObj.getStatus()==HDFSConstants.STATUS_NOT_FOUND||responseObj.getStatus()==HDFSConstants.STATUS_FAILED)
 			{
 				System.out.println("fatal error");
 				System.exit(0);
@@ -72,7 +72,7 @@ public class AppendFile  {
 			int size=(int) responseObj.getSize();
 			System.out.println("size of the file is "+size);
 			/**remaining size **/
-			int remainSize=(Constants.BLOCK_SIZE)-size;//1,000,000 - 841
+			int remainSize=(HDFSConstants.BLOCK_SIZE)-size;//1,000,000 - 841
 			
 			System.out.println("The remaining size  is "+remainSize);
 //		    BufferedReader breader = null;
@@ -146,8 +146,8 @@ public class AppendFile  {
 		{
 			
 //			InputStream in = new FileInputStream(appendFile);
-			Registry registry = LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
-			nameStub = (INameNode) registry.lookup(Constants.NAME_NODE);
+			Registry registry = LocateRegistry.getRegistry(HDFSConstants.NAME_NODE_IP,Registry.REGISTRY_PORT);
+			nameStub = (INameNode) registry.lookup(HDFSConstants.NAME_NODE);
 
 			WriteBlockRequest.Builder writeReqObj = WriteBlockRequest.newBuilder();
 
@@ -161,7 +161,7 @@ public class AppendFile  {
 			byte[] responseArray = nameStub.getBlockLocations(blockReqObj.build().toByteArray());
 
 			BlockLocationResponse myResponse = BlockLocationResponse.parseFrom(responseArray);
-			if(myResponse.getStatus()==Constants.STATUS_FAILED)
+			if(myResponse.getStatus()==HDFSConstants.STATUS_FAILED)
 			{
 				System.out.print("block response not got bye bye");
 				System.exit(0);				
@@ -209,11 +209,11 @@ public class AppendFile  {
 			port = thisDataNode.getPort();
 
 			Registry registry2=LocateRegistry.getRegistry(ip,port);					
-			dataStub = (IDataNode) registry2.lookup(Constants.DATA_NODE_ID);
+			dataStub = (IDataNode) registry2.lookup(HDFSConstants.DATA_NODE_ID);
 
 			byte[] writeReqResponse = dataStub.writeBlock(writeReqObj.build().toByteArray());
 			WriteBlockResponse writeBlkRes = WriteBlockResponse.parseFrom(writeReqResponse);
-			if(writeBlkRes.getStatus()!=Constants.STATUS_FAILED)
+			if(writeBlkRes.getStatus()!=HDFSConstants.STATUS_FAILED)
 			{
 				if(writeBlkRes.getCount()>=2)
 				{
@@ -313,7 +313,7 @@ public class AppendFile  {
 				assignResponse = nameStub.assignBlock(assgnBlk.build().toByteArray());
 				AssignBlockResponse assgnResponse = AssignBlockResponse.parseFrom(assignResponse);	
 				
-				if(assgnResponse.getStatus()!=Constants.STATUS_FAILED)
+				if(assgnResponse.getStatus()!=HDFSConstants.STATUS_FAILED)
 				{
 					/** we get the new block number **/
 					System.out.println("new block returned from NN");
@@ -335,19 +335,19 @@ public class AppendFile  {
 				port = thisDataNode.getPort();
 											
 				Registry registry2=LocateRegistry.getRegistry(ip,port);					
-				dataStub = (IDataNode) registry2.lookup(Constants.DATA_NODE_ID);
+				dataStub = (IDataNode) registry2.lookup(HDFSConstants.DATA_NODE_ID);
 				
 				
 				int sendBytes = 0;
-				if(amountBytesRemaining<Constants.BLOCK_SIZE)
+				if(amountBytesRemaining<HDFSConstants.BLOCK_SIZE)
 				{
 					sendBytes = amountBytesRemaining;
 					amountBytesRemaining = 0;
 				}
 				else
 				{
-					sendBytes = Constants.BLOCK_SIZE;
-					amountBytesRemaining = amountBytesRemaining - Constants.BLOCK_SIZE;
+					sendBytes = HDFSConstants.BLOCK_SIZE;
+					amountBytesRemaining = amountBytesRemaining - HDFSConstants.BLOCK_SIZE;
 				}
 				
 				byte[] data = new byte[sendBytes];
@@ -375,7 +375,7 @@ public class AppendFile  {
 				byte[] writeReqResponse = dataStub.writeBlock(writeBlkReq.build().toByteArray());
 				WriteBlockResponse writeBlkRes = WriteBlockResponse.parseFrom(writeReqResponse);
 				
-				if(writeBlkRes.getStatus()!=Constants.STATUS_FAILED)
+				if(writeBlkRes.getStatus()!=HDFSConstants.STATUS_FAILED)
 				{
 					if(writeBlkRes.getCount()>=2)
 					{

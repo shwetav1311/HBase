@@ -13,7 +13,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.CreateTableRequest;
 import com.hbase.miscl.HBase.CreateTableResponse;
 import com.hbase.rs.IRegionServer;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
 
 public class TestMaster {
 
@@ -179,10 +179,10 @@ public class TestMaster {
 			byte[] res = rsStub.create(req.build().toByteArray());
 			CreateTableResponse crTableResponse = CreateTableResponse.parseFrom(res);
 
-			if (crTableResponse.getStatus() == Constants.STATUS_SUCCESS) {
+			if (crTableResponse.getStatus() == HDFSConstants.STATUS_SUCCESS) {
 				System.out.println("Table created successfully");
 
-			} else if ((crTableResponse.getStatus() == Constants.STATUS_NOT_FOUND)) {
+			} else if ((crTableResponse.getStatus() == HDFSConstants.STATUS_NOT_FOUND)) {
 				System.out.println("Table already exists");
 			} else {
 				System.out.println("Table creation failed");

@@ -53,8 +53,12 @@ public class WALRecovery {
 	void getWALName()
 	{
 		// this is where I perform get call to the zoo-keeper to get the WAL file Name
-		walFname = "RS_0_WAL"; //hard coded for now
+//		walFname = "RS_0_WAL"; //hard coded for now
+		
+		//call to Zookeper to get the wal name
 	}
+	
+	
 	
 	
 	/**
@@ -77,6 +81,8 @@ public class WALRecovery {
 	void setWALName()
 	{
 		// make call to zookeeper and update wal for the table
+		
+		//call to Zookeper to set new wal name
 	}
 	
 	

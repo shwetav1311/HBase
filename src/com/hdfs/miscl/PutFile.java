@@ -54,7 +54,7 @@ public class PutFile implements Runnable {
 		// TODO Auto-generated method stub
 		
 		int fileHandle;
-		this.status=Constants.STATUS_SUCCESS;
+		this.status=HDFSConstants.STATUS_SUCCESS;
 		byte[] responseArray;
 		
 		OpenFileRequest.Builder openFileReqObj = OpenFileRequest.newBuilder();
@@ -64,13 +64,13 @@ public class PutFile implements Runnable {
 		
 		try 
 		{			
-			Registry registry=LocateRegistry.getRegistry(Constants.NAME_NODE_IP,Registry.REGISTRY_PORT);
+			Registry registry=LocateRegistry.getRegistry(HDFSConstants.NAME_NODE_IP,Registry.REGISTRY_PORT);
 			INameNode nameStub;
 //			int status;
 			
 				try 
 				{
-					nameStub = (INameNode) registry.lookup(Constants.NAME_NODE);
+					nameStub = (INameNode) registry.lookup(HDFSConstants.NAME_NODE);
 					responseArray = nameStub.openFile(openFileReqObj.build().toByteArray());
 					
 					/**The response Array will contain the FileHandle status and the block numbers **/
@@ -81,13 +81,13 @@ public class PutFile implements Runnable {
 //					System.out.println("The file handle is "+fileHandle);
 					
 					status = responseObj.getStatus();
-					if(status==Constants.STATUS_FAILED )//status failed change it
+					if(status==HDFSConstants.STATUS_FAILED )//status failed change it
 					{
 						System.out.println("Fatal Error!");
 						//System.exit(0);
 						return;
 					}
-					else if(status==Constants.STATUS_NOT_FOUND)
+					else if(status==HDFSConstants.STATUS_NOT_FOUND)
 					{
 //						System.out.println("Duplicate File");
 						//System.exit(0);
@@ -134,7 +134,7 @@ public class PutFile implements Runnable {
 						assignResponseObj = AssignBlockResponse.parseFrom(responseArray);
 						
 						status = assignResponseObj.getStatus();
-						if(status==Constants.STATUS_FAILED)
+						if(status==HDFSConstants.STATUS_FAILED)
 						{
 							System.out.println("Fatal Error!");
 							//System.exit(0);
@@ -155,13 +155,13 @@ public class PutFile implements Runnable {
 						Registry registry2=LocateRegistry.getRegistry(dataNode.getIp(),dataNode.getPort());
 
 						System.out.println(dataNode);
-						IDataNode dataStub = (IDataNode) registry2.lookup(Constants.DATA_NODE_ID);
+						IDataNode dataStub = (IDataNode) registry2.lookup(HDFSConstants.DATA_NODE_ID);
 
 						/**read 32MB from file, send it as bytes, this fills in the byteArray**/
 						
 						byte[] byteArray = read32MBfromFile(offset);
 						
-						offset=offset+(int)Constants.BLOCK_SIZE;
+						offset=offset+(int)HDFSConstants.BLOCK_SIZE;
 						
 //						System.out.println("---------------------"+byteArray.length);
 						
@@ -184,11 +184,11 @@ public class PutFile implements Runnable {
 					
 					CloseFileRequest.Builder closeFileObj = CloseFileRequest.newBuilder();
 					closeFileObj.setHandle(fileHandle);
-					closeFileObj.setDecision(Constants.STATUS_NOT_FOUND);
+					closeFileObj.setDecision(HDFSConstants.STATUS_NOT_FOUND);
 					
 					byte[] receivedArray = nameStub.closeFile(closeFileObj.build().toByteArray());
 					CloseFileResponse closeResObj = CloseFileResponse.parseFrom(receivedArray);
-					if(closeResObj.getStatus()==Constants.STATUS_FAILED)
+					if(closeResObj.getStatus()==HDFSConstants.STATUS_FAILED)
 					{
 						System.out.println("Close File response Status Failed");
 //						System.exit(0);
@@ -230,7 +230,7 @@ public class PutFile implements Runnable {
 		
 		long fileSize = inputFile.length();
 		FILESIZE=inputFile.length();
-		double noOfBlocks = Math.ceil((double)fileSize*1.0/(double)Constants.BLOCK_SIZE*1.0);
+		double noOfBlocks = Math.ceil((double)fileSize*1.0/(double)HDFSConstants.BLOCK_SIZE*1.0);
 		
 //		System.out.println("The length of the file is "+fileSize+ " Number of blocks are "+(int)noOfBlocks);
 		
@@ -251,9 +251,9 @@ public class PutFile implements Runnable {
 			e1.printStackTrace();
 		}
 	
-		int bytesToBeRead = (int)Constants.BLOCK_SIZE;
+		int bytesToBeRead = (int)HDFSConstants.BLOCK_SIZE;
 		
-		int limit =offset+(int)Constants.BLOCK_SIZE; 
+		int limit =offset+(int)HDFSConstants.BLOCK_SIZE; 
 		
 		if(limit >= (int) FILESIZE)
 		{
@@ -261,7 +261,7 @@ public class PutFile implements Runnable {
 		}
 		else
 		{
-			bytesToBeRead = (int)Constants.BLOCK_SIZE;			
+			bytesToBeRead = (int)HDFSConstants.BLOCK_SIZE;			
 		}
 		
 		

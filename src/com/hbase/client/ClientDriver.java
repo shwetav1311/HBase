@@ -1,5 +1,6 @@
 package com.hbase.client;
 
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -7,7 +8,11 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.StringTokenizer;
 import java.util.Map.Entry;
+
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hbase.miscl.HBase.Cell;
@@ -21,7 +26,8 @@ import com.hbase.miscl.HBase.PutRequest;
 import com.hbase.miscl.HBase.PutResponse;
 import com.hbase.miscl.HBaseConstants;
 import com.hbase.rs.IRegionServer;
-import com.hdfs.miscl.Constants;
+import com.hdfs.miscl.HDFSConstants;
+import com.hbase.zookeeper.*;
 
 public class ClientDriver {
 
@@ -47,24 +53,68 @@ public class ClientDriver {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		String id="1";  // Region Server ID
-		Registry registry = null;
+		String path= com.hbase.zookeeper.ZookeeperConstants.HBASE_MASTER;
+		
+		ZooKeeperConnection conn=new ZooKeeperConnection();
+		ZooKeeper zk = null;
 		try {
-			registry = LocateRegistry.getRegistry(HBaseConstants.RS_DRIVER_IP,HBaseConstants.RS_PORT+Integer.parseInt(id));
+			zk = conn.connect(HBaseConstants.ZOOKEEPER_IP);
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		byte[] bs = null;
+		try {
+			bs = zk.getData(path,false,null);
+		} catch (KeeperException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		String str = new String(bs);
+		
+		System.out.println("we got the ip and port of master:-"+str);
+		
+		
+		
+		StringTokenizer st = new StringTokenizer(str,":");
+		
+		String Master_ip=st.nextToken();
+		String Master_port=st.nextToken();
+		
+		System.out.println("Master ip is "+Master_ip+" port is "+Master_port);
+		
+		
+		Registry registry = null;		
+		
+		try {
+			registry = LocateRegistry.getRegistry(Master_ip,Integer.parseInt(Master_port));
+			//System.out.println("created");
 		} catch (RemoteException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		
 		}
 		
-			try 
-			{
-				rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER+id);
-			}catch (NotBoundException | RemoteException e) {
-				// TODO Auto-generated catch block
-				System.out.println("Could not find Region Server");
-				e.printStackTrace();
-			} 	
+		try 
+		{
+    		System.out.println(HBaseConstants.RS_DRIVER);
+			
+		    rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER);
+		  
+		 // System.out.println("created2")
+		}catch (NotBoundException | RemoteException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Could not find Region Server");
+			e.printStackTrace();
+		} 	
+		System.out.println("Table creation request started ..............");
 		
 		String action = args[0];
 		String tableName = args[1];
@@ -73,7 +123,8 @@ public class ClientDriver {
 		if(action.equalsIgnoreCase("create"))
 		{
 			createTable(tableName, args);
-			
+			System.out.println("Create Table call successfully called");
+			System.exit(0);
 			
 		}else if(action.equalsIgnoreCase("put"))
 		{
@@ -91,6 +142,8 @@ public class ClientDriver {
 		CreateTableRequest.Builder req = CreateTableRequest.newBuilder();
 		req.setTableName(tableName);
 		
+		System.out.println("The args are "+args.length);
+		
 		for(int i=2;i<args.length;i++)
 		{
 			req.addColFamilies(args[i]);
@@ -100,11 +153,11 @@ public class ClientDriver {
 			byte[] res = rsStub.create(req.build().toByteArray());
 			CreateTableResponse crTableResponse = CreateTableResponse.parseFrom(res);
 			
-			if (crTableResponse.getStatus()==Constants.STATUS_SUCCESS)
+			if (crTableResponse.getStatus()==HDFSConstants.STATUS_SUCCESS)
 			{
 				System.out.println("Table created successfully");
 				
-			}else if ((crTableResponse.getStatus()==Constants.STATUS_NOT_FOUND))
+			}else if ((crTableResponse.getStatus()==HDFSConstants.STATUS_NOT_FOUND))
 			{
 				System.out.println("Table already exists");
 			}else
@@ -188,7 +241,7 @@ public class ClientDriver {
 			try {
 				res = rsStub.put(putRequest.build().toByteArray());
 				PutResponse putResponse = PutResponse.parseFrom(res);
-				if (putResponse.getStatus() == Constants.STATUS_SUCCESS)
+				if (putResponse.getStatus() == HDFSConstants.STATUS_SUCCESS)
 				{
 					System.out.println("Success");
 				}else
@@ -264,7 +317,7 @@ public class ClientDriver {
 			res = rsStub.get(getRequest.build().toByteArray());
 			GetResponse getResponse = GetResponse.parseFrom(res);
 			
-			if(getResponse.getStatus()==Constants.STATUS_SUCCESS)
+			if(getResponse.getStatus()==HDFSConstants.STATUS_SUCCESS)
 			{
 				System.out.print("success");
 				System.out.println(getResponse.getColFamilyCount());
