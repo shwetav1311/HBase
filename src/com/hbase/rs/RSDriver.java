@@ -45,25 +45,28 @@ import com.hdfs.miscl.PutFile;
 public class RSDriver implements IRegionServer {
 	
 	
-	static int id;
+	static Integer id;
 	static int seqID = 0; 
 	static int recFlag = 0; // 1 means recovery
 
 	//map to store table to Region mapping	
 	static HashMap<String,ArrayList<Region>> regionMap;
-	static WAL walObj; 
+	static WAL walObj;
+	
 	
 	public static void main(String[] args)
 	{
 		
 		/** WAL object, with WAL file Name **/
-		walObj = new WAL(HBaseConstants.REGION_SERVER+id+HBaseConstants.WAL_SUFFIX);
+		
+		
+		id=Integer.parseInt(args[0]);
+		
+		walObj = new WAL(HBaseConstants.REGION_SERVER+id.toString()+HBaseConstants.WAL_SUFFIX);
 		
 		walObj.createFile();
 		
 		regionMap = new HashMap<>();
-		
-		id=Integer.parseInt(args[0]);
 		
 		System.out.println("Region server Binding to Registry...");
 		
@@ -186,21 +189,27 @@ public class RSDriver implements IRegionServer {
 			
 			int status = createTableHDFS(tableName);
 			
-//			boolean success = (new File(tableName)).delete();
-//			
-//			if(regionMap.get(tableName) == null)
-//			{
-//				System.out.println("table not found");
-//				
-//				ArrayList<Region> arr = new ArrayList<>();
-//				Region region = new Region(tableName, "0");
-//				arr.add(region);
-//				regionMap.put(tableName,arr);
-//				
-//			}
-			
-			chooseRSandLoad(tableName);
-		    			
+			if(status==HDFSConstants.STATUS_SUCCESS)
+			{
+				try {
+					Node.addTable(tableName); // add table to zookeeper
+					chooseRSandLoad(tableName);
+					
+					
+				} catch (KeeperException e) {
+					// TODO Auto-generated catch block
+					
+					e.printStackTrace();
+					status = HDFSConstants.STATUS_FAILED;
+					
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					status = HDFSConstants.STATUS_FAILED;
+				}
+				
+			}
+						
 			res.setStatus(status);
 			
 			return res.build().toByteArray();
@@ -448,7 +457,7 @@ public class RSDriver implements IRegionServer {
 			WALRecovery walObj = new WALRecovery(tableName,regionMap.get(tableName).get(0));
 			walObj.getWALName();
 			walObj.downloadAndRecoverWAL();
-			walObj.setWALName();
+			walObj.setWALName(id.toString());
 			
 		}
 		
@@ -462,29 +471,21 @@ public class RSDriver implements IRegionServer {
 	{
 		String data = HBaseConstants.RS_DRIVER_IP+":"+(HBaseConstants.RS_PORT+id);
 		
-		Node.createNode(ZookeeperConstants.HBASE_META, tableName, data,0);
+		Node.createNode(ZookeeperConstants.HBASE_META, tableName, data,0); // 0 : ephemeral
 	
-		Node.createNode(ZookeeperConstants.HBASE_WAL, tableName, walName, 1);
+		Node.createNode(ZookeeperConstants.HBASE_WAL, tableName, walName, 1); // 1: persistent
 	}
 	
-	public boolean chooseRSandLoad(String tableName)
+	public boolean chooseRSandLoad(String tableName) throws KeeperException, InterruptedException 
 	{
 		System.out.println("chooseRSand Load...............");
 		
 		boolean result = false;
 		 
 		List<String> childNodePaths = null;
-		try {
-			childNodePaths = Node.zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, false);
-		} catch (KeeperException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
+	
+		childNodePaths = Node.zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, false);
+		
 		
 		int size=childNodePaths.size()-1;
 		Collections.sort(childNodePaths);
@@ -498,17 +499,9 @@ public class RSDriver implements IRegionServer {
 		Assigned_reg=com.hbase.zookeeper.ZookeeperConstants.LEADER_ELECTION_ROOT_NODE+"/"+Assigned_reg;
 		
 		byte[] bs = null;
-		try {
-			bs = Node.zoo.getData(Assigned_reg,false,null);// the data is IP:port, false because any update wont generate an event
-		} catch (KeeperException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
+		
+		bs = Node.zoo.getData(Assigned_reg,false,null);// the data is IP:port, false because any update wont generate an event
+
 		
 		String str = new String(bs);
 		System.out.println("The random ip and port oion server:-  "+str);

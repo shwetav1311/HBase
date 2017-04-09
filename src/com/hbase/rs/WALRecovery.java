@@ -10,9 +10,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.zookeeper.KeeperException;
+
 import com.hbase.miscl.Converter;
-import com.hbase.miscl.HBaseConstants;
 import com.hbase.miscl.HBase.WalEntry;
+import com.hbase.miscl.HBaseConstants;
+import com.hbase.zookeeper.Node;
+import com.hbase.zookeeper.ZookeeperConstants;
 import com.hdfs.miscl.GetFile;
 import com.hdfs.miscl.ListFile;
 
@@ -54,6 +58,19 @@ public class WALRecovery {
 	{
 		// this is where I perform get call to the zoo-keeper to get the WAL file Name
 //		walFname = "RS_0_WAL"; //hard coded for now
+		String getWalPath=ZookeeperConstants.HBASE_WAL+"/"+tableName;
+		System.out.println("got walname "+getWalPath);
+		byte[] bs = null;
+		try {
+			bs = Node.zoo.getData(getWalPath,false,null);
+			walFname = new String(bs);			
+		
+			
+		} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 		//call to Zookeper to get the wal name
 	}
@@ -73,16 +90,30 @@ public class WALRecovery {
 		getFileFromHDFS(walFname,localWal);		
 		performRecovery();
 		
-	}
+	} 
 
 	/**
 	 * set/update WAL name in zookeeper 
 	 */
-	void setWALName()
+	void setWALName(String rsID)
 	{
 		// make call to zookeeper and update wal for the table
 		
 		//call to Zookeper to set new wal name
+		String walPath = ZookeeperConstants.HBASE_WAL+"/"+tableName;		
+		
+		String data = HBaseConstants.REGION_SERVER+rsID+HBaseConstants.WAL_SUFFIX;
+		
+		try {
+			Node.zoo.setData(walPath,data.getBytes(),-1); //update wal entry for the table
+			
+			Node.createNode(ZookeeperConstants.HBASE_META, tableName, data,0); // create ephemeral node
+			
+		} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	
