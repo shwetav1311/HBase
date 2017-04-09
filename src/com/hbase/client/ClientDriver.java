@@ -1,6 +1,7 @@
 package com.hbase.client;
 
 import java.io.IOException;
+import com.hbase.zookeeper.*;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -49,6 +50,7 @@ public class ClientDriver {
 	*/
 
 	public static IRegionServer rsStub;
+	public static ZooKeeper zk = null;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -56,7 +58,7 @@ public class ClientDriver {
 		String path= com.hbase.zookeeper.ZookeeperConstants.HBASE_MASTER;
 		
 		ZooKeeperConnection conn=new ZooKeeperConnection();
-		ZooKeeper zk = null;
+		//ZooKeeper zk = null;
 		try {
 			zk = conn.connect(HBaseConstants.ZOOKEEPER_IP);
 		} catch (IOException e2) {
@@ -237,9 +239,11 @@ public class ClientDriver {
 			
 			//put ’tablename’, ’rowkey’, ’cfname:colname’, ‘value’ 
 			
+			IRegionServer tblRegionStub = getRegionStub(tableName);
+			
 			byte[] res;
 			try {
-				res = rsStub.put(putRequest.build().toByteArray());
+				res = tblRegionStub.put(putRequest.build().toByteArray());
 				PutResponse putResponse = PutResponse.parseFrom(res);
 				if (putResponse.getStatus() == HDFSConstants.STATUS_SUCCESS)
 				{
@@ -269,7 +273,45 @@ public class ClientDriver {
 		
 	}
 	
-//	get ’tablename’, ’rowkey’ , 'cfname:colName'	
+private static IRegionServer getRegionStub(String tableName) {
+	byte[] bs = null;
+	try {
+	 bs=zk.getData(ZookeeperConstants.HBASE_META+"/"+tableName,false,null);
+		
+	} catch (KeeperException | InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	String str = new String(bs);
+	StringTokenizer st = new StringTokenizer(str,":");  
+	String Assignedreg_ip=st.nextToken();
+    String Assignedreg_port=st.nextToken();
+    IRegionServer rsStub=null;
+	Registry registry = null;
+	try {
+		registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+	} catch (RemoteException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	
+	}
+	try 
+	{
+	  rsStub = (IRegionServer) registry.lookup("RegionServer");
+	}catch (NotBoundException | RemoteException e) {
+		// TODO Auto-generated catch block
+		System.out.println("Could not find Region Server");
+		e.printStackTrace();
+	} 	
+      
+	return rsStub;
+	
+		
+		
+	}
+
+
+	//	get ’tablename’, ’rowkey’ , 'cfname:colName'	
 	public static void getTable(String tableName,String[] args)
 	{
 		GetRequest.Builder getRequest = GetRequest.newBuilder();
