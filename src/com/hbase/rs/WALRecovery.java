@@ -95,7 +95,7 @@ public class WALRecovery {
 	/**
 	 * set/update WAL name in zookeeper 
 	 */
-	void setWALName(String rsID)
+	void setWALName(String rsID,String ip_port)
 	{
 		// make call to zookeeper and update wal for the table
 		
@@ -107,7 +107,7 @@ public class WALRecovery {
 		try {
 			Node.zoo.setData(walPath,data.getBytes(),-1); //update wal entry for the table
 			
-			Node.createNode(ZookeeperConstants.HBASE_META, tableName, data,0); // create ephemeral node
+			Node.createNode(ZookeeperConstants.HBASE_META, tableName, ip_port,0); // create ephemeral node
 			
 		} catch (KeeperException | InterruptedException e) {
 			// TODO Auto-generated catch block

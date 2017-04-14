@@ -101,7 +101,10 @@ public class GetRow {
 		try
 		{
 			System.out.print("Search in memStore "+store.memStore.get(rowKey).get(colFamily).get(colName).get(0).getColValue());
-			return store.memStore.get(rowKey).get(colFamily).get(colName).get(0).getColValue();
+			
+			int index = store.memStore.get(rowKey).get(colFamily).get(colName).size();
+			
+			return store.memStore.get(rowKey).get(colFamily).get(colName).get(index-1).getColValue();
 		}catch(NullPointerException e)
 		{
 			return null;
@@ -223,7 +226,9 @@ public class GetRow {
 						{
 							if(col.getColName().equals(colName))
 							{
-								return col.getCells(0).getColValue();
+								
+								int index = col.getCellsCount();
+								return col.getCells(index-1).getColValue();
 							}
 						}
 					}

@@ -112,6 +112,7 @@ public class MemStore {
 						}
 						else
 							cellListMap.get(columnName).addAll(myCell); // check here if something is wrong
+//							System.out.println("");
 
 					}
 				}
