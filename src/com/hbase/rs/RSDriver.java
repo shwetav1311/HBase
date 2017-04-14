@@ -454,10 +454,12 @@ public class RSDriver implements IRegionServer {
 			/** Things stop here until recovery here **/
 			createRegion(tableName);
 			
+			String ip_port = HBaseConstants.RS_DRIVER_IP + ":"+(HBaseConstants.RS_PORT+id);
+			
 			WALRecovery walObj = new WALRecovery(tableName,regionMap.get(tableName).get(0));
 			walObj.getWALName();
 			walObj.downloadAndRecoverWAL();
-			walObj.setWALName(id.toString());
+			walObj.setWALName(id.toString(),ip_port);
 			
 		}
 		
