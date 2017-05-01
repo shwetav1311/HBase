@@ -192,7 +192,7 @@ public class RSDriver implements IRegionServer {
 			if(status==HDFSConstants.STATUS_SUCCESS)
 			{
 				try {
-					Node.addTable(tableName); // add table to zookeeper
+//					Node.addTable(tableName); // add table to zookeeper
 					chooseRSandLoad(tableName);
 					
 					
@@ -200,7 +200,7 @@ public class RSDriver implements IRegionServer {
 					// TODO Auto-generated catch block
 					
 					e.printStackTrace();
-					status = HDFSConstants.STATUS_FAILED;
+//					status = HDFSConstants.STATUS_FAILED;
 					
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -489,12 +489,14 @@ public class RSDriver implements IRegionServer {
 		childNodePaths = Node.zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, false);
 		
 		
-		int size=childNodePaths.size()-1;
+//		int size=childNodePaths.size()-1;
+		int size=childNodePaths.size();
 		Collections.sort(childNodePaths);
 		
 		Random rand = new Random();
 
-		int  n = rand.nextInt(size) +1;
+//		int  n = rand.nextInt(size) +1;
+		int  n = rand.nextInt(size);
 		
 		String Assigned_reg=childNodePaths.get(n); // To randomly select a child(new RS) from the list
 		
