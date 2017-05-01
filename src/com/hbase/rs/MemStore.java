@@ -146,7 +146,9 @@ public class MemStore {
 	public synchronized void writeToHFileRecovery(int seqID)
 	{
 		tempStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >(memStore);
-		writeToHFile(seqID);
+		System.out.println("Tempstore size::"+tempStore.size());
+		if(tempStore.size()!=0)
+			writeToHFile(seqID);
 		memStore.clear();
 		memStoreSize = 0;
 	}
