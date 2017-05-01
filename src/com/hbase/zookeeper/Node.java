@@ -47,11 +47,27 @@ public class Node implements Runnable {
 	String ip;
 	String port;
 	public Set<String> followers = new HashSet<String>();
-	private static List<String> tableList = new ArrayList<>(); /* only used by master */
+//	private static List<String> tableList = new ArrayList<>(); /* only used by master */
 	
-	public static void addTable(String tableName) {
+//	public static void addTable(String tableName) {
+//		
+//		tableList.add(tableName);
+//	}
+	
+	public static List<String > getTableList()
+	{
 		
-		tableList.add(tableName);
+		List<String> childNodeList = new ArrayList<>();
+		try {
+			childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_WAL, false);
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return childNodeList;
 	}
 
 	public int getLeader()
@@ -129,14 +145,46 @@ public class Node implements Runnable {
 			System.out.println("[Process: " + id
 					+ "] Process node created with path: " + processNodePath);
 			
+			System.out.println("Step1 in my creation");
 			leaderElection();
+			
+			if(leader==1)
+				allocateTableOnStart();
+			
 			
 		} catch (KeeperException | InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 
+	
+	private void allocateTableOnStart()
+	{
+		
+		
+		try {
+			new Thread().sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		List<String> tableList = getTableList();
+		for (String table : tableList)
+		{
+			try {
+				assignTableAfterFailure(table);
+			} catch (KeeperException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+	}
+	
 	public void leaderElection() throws KeeperException, InterruptedException {
+		System.out.println("Step2 in my creation");
 		List<String> childNodePaths = zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, false);
 		Collections.sort(childNodePaths);
 		
@@ -147,7 +195,7 @@ public class Node implements Runnable {
 			System.out.println("I am leader");
 //			zoo.getChildren(metaNodePath, true);
 			String ip_port=ip+":"+port;
-			zoo.setData("/hbase/master",ip_port.getBytes(),-1);
+			zoo.setData(ZookeeperConstants.HBASE_MASTER,ip_port.getBytes(),-1);
 			
 			leader = 1;
 			
@@ -159,7 +207,9 @@ public class Node implements Runnable {
 			System.out.println("Setting watch on ROOT_NODE ");
 			zoo.getChildren(ZookeeperConstants.HBASE_META,new MetaWatcher());
 			zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, true);
-			//zoo.getChildren(TABLE_ROOT_NODE,true);
+			
+			
+			
 			
 		} else {
 			
@@ -168,33 +218,37 @@ public class Node implements Runnable {
 			leader = 0;			
 			for (int i = 0; childNodePaths.size()-1 > i; i++)
 			{
-			/*Follower putting watch on all smallest node*/
-				
-			watchedNodePath = ZookeeperConstants.LEADER_ELECTION_ROOT_NODE+childNodePaths.get(i);
-			if(i==index)
-			{
-				i++;
-			break;
-			}
-			//zoo.getChildren(TABLE_ROOT_NODE,new MetaWatcher());
-			//System.out.println("  "+watchedNodePath+" ");
-			//System.out.println(zoo.exists(watchedNodePath, true));
-			zoo.exists(watchedNodePath, true);
+				/* Follower putting watch on all smallest node */
+
+				watchedNodePath = ZookeeperConstants.LEADER_ELECTION_ROOT_NODE + childNodePaths.get(i);
+				if (i == index) {
+					i++;
+					break;
+				}
+				// zoo.getChildren(TABLE_ROOT_NODE,new MetaWatcher());
+				// System.out.println(" "+watchedNodePath+" ");
+				// System.out.println(zoo.exists(watchedNodePath, true));
+				zoo.exists(watchedNodePath, true);
 			
 			}
+			/* added watch on the master */
+			zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE+"/"+childNodePaths.get(0),true);
 		}
+		
+		
 	}
 
 	public class ProcessNodeWatcher implements Watcher {
 		
 		public void process(WatchedEvent event) {
 			
-			
-			
+			System.out.println("Event  Type : "+event.getType() +" "+ event.getPath());
 			 
 			if (leader == 0) 
 			{
+				
 				if (EventType.NodeDeleted.equals(event.getType())) {
+					System.out.println("Leader has died !!!!!");
 					try {
 						zoo.getChildren(ZookeeperConstants.HBASE_META,new MetaWatcher());
 						leaderElection();
@@ -204,6 +258,12 @@ public class Node implements Runnable {
 						e.printStackTrace();
 					}
 				}
+				
+				/* If this region server is the leader then tables allocated to the previous leader must be 
+				 * reallocated*/
+				
+				if(leader==1)
+					getDifferenceAndAllocateTables();
 			} 
 			else if (leader == 1)
 			{
@@ -268,70 +328,19 @@ public class Node implements Runnable {
 	}
 	
 	public class MetaWatcher implements Watcher {
-	
+
 		@Override
 		public void process(WatchedEvent event) {
-			if (leader == 0) {
-				// Other nodes which are not leaders
-			}
-			// System.out.println("meta event happened ");
+
 			if (leader == 1) {
 
 				System.out.println("Event received:   " + event.getType());
-				
-				
-				try {
-					List<String> childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_META, false);
-
-					for (String child : childNodeList) {
-
-						// System.out.println(child);
-						if (!tableList.contains(child)) {
-							System.out.println("New table added:     " + child);
-						} else {
-							if (childNodeList.size() != 0)
-								tableList.remove(child);
-						}
-					}
-
-					int table_size = tableList.size();
-					if (tableList.size() > 0) {
-						for (int i = 0; i < table_size; i++) {
-							String node_child = tableList.get(0);
-							System.out.println("table deleted in meta:   " + node_child);
-
-							System.out.println("The Wal filename present in:--" + "/hbase/wal/" + node_child);
-							System.out.println("Assigning the delted table to another region server");
-							assignTableAfterFailure(node_child);
-							tableList.remove(node_child);
-							
-						}
-					}
-
-					tableList.clear();
-					childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_META, false);
-					for (int i = 0; i < childNodeList.size(); i++)
-						tableList.add(childNodeList.get(i));
-
-				} catch (KeeperException | InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				try {
-
-					zoo.getChildren(ZookeeperConstants.HBASE_META, new MetaWatcher());
-
-				} catch (KeeperException | InterruptedException e) {
-
-					e.printStackTrace();
-				}
+				getDifferenceAndAllocateTables();
 			} // end-if
 
 		}
-	//			
-		}
-	
+		//
+	}
 	
 	
 	
@@ -341,12 +350,17 @@ public class Node implements Runnable {
 		System.out.println("Assigning after failure Tablename : "+tableName);
 		int result = 0;
 		List<String> childNodePaths = zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, false);
-		int size=childNodePaths.size()-1;
+	
+		
+//		int size=childNodePaths.size()-1;
+		
+		int size=childNodePaths.size();
 		Collections.sort(childNodePaths);
 		
 		Random rand = new Random();
 
-		int  n = rand.nextInt(size) +1;
+//		int  n = rand.nextInt(size) +1;
+		int  n = rand.nextInt(size);
 		
 		String Assigned_reg=childNodePaths.get(n);
 		
@@ -465,6 +479,63 @@ public class Node implements Runnable {
 		}
 			
 				
+	}
+	
+	
+	/* when a table does not have a region */
+	private void getDifferenceAndAllocateTables()
+	{
+		List<String> tableList = getTableList();
+	
+		
+		
+		try {
+			List<String> childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_META, false);
+
+			for (String child : childNodeList) {
+
+				// System.out.println(child);
+				if (!tableList.contains(child)) {
+					System.out.println("New table added:     " + child);
+				} else {
+					if (childNodeList.size() != 0)
+						tableList.remove(child);
+				}
+			}
+
+			int table_size = tableList.size();
+			if (tableList.size() > 0) {
+				for (int i = 0; i < table_size; i++) {
+					String node_child = tableList.get(0);
+					System.out.println("table deleted in meta:   " + node_child);
+
+					System.out.println("The Wal filename present in:--" + "/hbase/wal/" + node_child);
+					System.out.println("Assigning the delted table to another region server");
+					assignTableAfterFailure(node_child);
+					tableList.remove(node_child);
+					
+				}
+			}
+
+			tableList.clear();
+			childNodeList = zoo.getChildren(ZookeeperConstants.HBASE_META, false);
+			for (int i = 0; i < childNodeList.size(); i++)
+				tableList.add(childNodeList.get(i));
+
+		} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		try {
+
+			zoo.getChildren(ZookeeperConstants.HBASE_META, new MetaWatcher());
+
+		} catch (KeeperException | InterruptedException e) {
+
+			e.printStackTrace();
+		}
+		
 	}
 		
 		
