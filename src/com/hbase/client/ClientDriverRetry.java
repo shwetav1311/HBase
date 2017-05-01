@@ -253,6 +253,15 @@ public class ClientDriverRetry {
 //					e.printStackTrace();
 					System.out.println("Exception: "+e.getMessage());
 				} 
+				
+				try {
+					new Thread().sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
 				cnt++;
 				
 			}
@@ -354,10 +363,10 @@ private static IRegionServer getRegionStub(String tableName) throws KeeperExcept
 					if(getResponse.getColFamilyCount()==0)
 					{
 						System.out.println("Not Found");
-						System.exit(0);
 					}
 					
 					System.out.print(getResponse.getColFamily(0));
+					System.exit(0);
 				}else
 				{
 					System.out.print("falild");
@@ -372,6 +381,12 @@ private static IRegionServer getRegionStub(String tableName) throws KeeperExcept
 				
 				
 			} 
+			try {
+				new Thread().sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			
 		}
