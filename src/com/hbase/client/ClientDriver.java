@@ -126,7 +126,7 @@ public class ClientDriver {
 		{
 			createTable(tableName, args);
 			System.out.println("Create Table call successfully called");
-			System.exit(0);
+			
 			
 		}else if(action.equalsIgnoreCase("put"))
 		{
@@ -181,14 +181,12 @@ public class ClientDriver {
 	
 	public static void putTable(String tableName,String[] args)
 	{
-		int cnt=0;
-		Integer rowkey=1;
-//		while(true)
+		
 		{
 			PutRequest.Builder putRequest = PutRequest.newBuilder();
 			putRequest.setTableName(tableName);
-//			putRequest.setRowkey(args[2]);
-			putRequest.setRowkey(rowkey.toString());
+			putRequest.setRowkey(args[2]);
+			
 			
 			/* club all column families together */
 			HashMap<String, ArrayList<Column>> map = new HashMap<>();
@@ -261,9 +259,7 @@ public class ClientDriver {
 				e.printStackTrace();
 			}
 			
-			System.out.println(cnt);
-			rowkey++;
-			cnt++;
+			
 
 		}
 		
@@ -283,6 +279,7 @@ private static IRegionServer getRegionStub(String tableName) {
 		e.printStackTrace();
 	}
 	String str = new String(bs);
+	System.out.println("ip "+str);
 	StringTokenizer st = new StringTokenizer(str,":");  
 	String Assignedreg_ip=st.nextToken();
     String Assignedreg_port=st.nextToken();
@@ -297,7 +294,7 @@ private static IRegionServer getRegionStub(String tableName) {
 	}
 	try 
 	{
-	  rsStub = (IRegionServer) registry.lookup("RegionServer");
+	  rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER);
 	}catch (NotBoundException | RemoteException e) {
 		// TODO Auto-generated catch block
 		System.out.println("Could not find Region Server");
@@ -352,11 +349,11 @@ private static IRegionServer getRegionStub(String tableName) {
 			getRequest.addColFamily(cFamily.build());
 
 		}
-		
+		IRegionServer tblRegionStub = getRegionStub(tableName);
 		
 		byte[] res;
 		try {
-			res = rsStub.get(getRequest.build().toByteArray());
+			res = tblRegionStub.get(getRequest.build().toByteArray());
 			GetResponse getResponse = GetResponse.parseFrom(res);
 			
 			if(getResponse.getStatus()==HDFSConstants.STATUS_SUCCESS)
