@@ -21,6 +21,8 @@ public final class HBaseConstants {
 	public static final Integer APPEND_STATUS_SUCCESS = 1;
 	public static final Integer APPEND_STATUS_FAILURE = 0;
 	
+	public static final String RS_CONF = "RSConf";
+	
 	
 	
 }

@@ -267,6 +267,12 @@ public class RSDriver implements IRegionServer{
 		return null;
 	}
 
+	@Override
+	public byte[] unloadRegion(byte[] inp) throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	
 	
 }

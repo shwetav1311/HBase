@@ -169,16 +169,18 @@ public class Node implements Runnable {
 			e.printStackTrace();
 		}
 		
-		List<String> tableList = getTableList();
-		for (String table : tableList)
-		{
-			try {
-				assignTableAfterFailure(table);
-			} catch (KeeperException | InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//		List<String> tableList = getTableList();
+//		for (String table : tableList)
+//		{
+//			try {
+//				assignTableAfterFailure(table);
+//			} catch (KeeperException | InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+		
+		Node.createNode(ZookeeperConstants.HBASE_META,"@##@@@","", 0);
 		
 		
 	}

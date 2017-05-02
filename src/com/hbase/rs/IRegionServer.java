@@ -25,4 +25,8 @@ public interface IRegionServer extends Remote {
 	 * @throws IOException **/
 	
 	byte[] loadRegion(byte[] inp) throws RemoteException;
+	
+	byte[] unloadRegion(byte[] inp) throws RemoteException;
+	
+	
 }

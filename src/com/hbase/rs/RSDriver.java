@@ -88,6 +88,21 @@ public class RSDriver implements IRegionServer {
 	    	System.out.println("File creation problem");
 	    }
 		
+	    
+	    createBlockDirectory();
+	    File myFile = new File(getDirectoryName()+"/"+HBaseConstants.SEQ_ID_FILE);
+	    
+	    if(!myFile.exists())
+	    {
+	    	try{
+	    	    PrintWriter writer = new PrintWriter(getDirectoryName()+"/"+HBaseConstants.SEQ_ID_FILE, "UTF-8");
+	    	    writer.println("1");
+	    	    writer.close();
+	    	} catch (IOException e) {
+	    	   // do something
+	    	}
+	    }
+	    
 		bindToRegistry();
 		
 		try {
@@ -303,7 +318,7 @@ public class RSDriver implements IRegionServer {
 	 * @param dataIn
 	 * @return 
 	 */
-	private int appendIntoWAL(String seqID, String RSID, byte[] dataIn) {
+	private synchronized int appendIntoWAL(String seqID, String RSID, byte[] dataIn) {
 		// TODO Auto-generated method stub
 		return walObj.appendToHDFS(seqID,RSID,dataIn);
 	}
@@ -377,15 +392,30 @@ public class RSDriver implements IRegionServer {
 		
 	}
 	
+	public static String getDirectoryName()
+	{
+		return (HBaseConstants.RS_CONF+id);
+	}
+	
+	public static void createBlockDirectory()
+	{
+		File dir = new File(getDirectoryName());
+		
+		if(!dir.exists())
+		{
+			dir.mkdir();
+		}
+	}
+	
 	/**
 	 * Generate Sequence ID
 	 */
-	public static synchronized int getSeqID()
+	public synchronized static int getSeqID()
 	{
 		Integer num=0;
 		try {
 						
-			BufferedReader buff = new BufferedReader(new FileReader(HBaseConstants.SEQ_ID_FILE));
+			BufferedReader buff = new BufferedReader(new FileReader(getDirectoryName()+"/"+HBaseConstants.SEQ_ID_FILE));
 			String line=buff.readLine();
 			buff.close();
 			
@@ -393,7 +423,7 @@ public class RSDriver implements IRegionServer {
 			num++;
 			PrintWriter pw;
 			try {
-				pw = new PrintWriter(new FileWriter(HBaseConstants.SEQ_ID_FILE));
+				pw = new PrintWriter(new FileWriter(getDirectoryName()+"/"+HBaseConstants.SEQ_ID_FILE));
 			    pw.write(num.toString());
 		        pw.close();
 			} catch (IOException e) {
@@ -584,5 +614,33 @@ public class RSDriver implements IRegionServer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public byte[] unloadRegion(byte[] inp) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+		LoadRegionRequest loadReq = null;
+		try {
+			loadReq = LoadRegionRequest.parseFrom(inp);
+		} catch (InvalidProtocolBufferException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		LoadRegionResponse.Builder respObj = LoadRegionResponse.newBuilder();
+		respObj.setStatus(HDFSConstants.STATUS_FAILED);
+		
+		
+		String tableName = loadReq.getTableName();
+		
+		regionMap.get(tableName).get(0).memStore.writePartialMemstoreToHFile(); //get(0) one region per table		
+		/**remove the entry for this particular table after writing the HFile for it **/
+		regionMap.remove(tableName);
+		
+		respObj.setStatus(HDFSConstants.STATUS_SUCCESS);		
+		
+		return respObj.build().toByteArray();
+		
 	}
 }

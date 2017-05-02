@@ -29,7 +29,7 @@ public class MemStore {
 	private String endKey;
 	private int memStoreSize = 0;
 	private long numBlock=0;
-	
+	public int lastSeqId = 0; // last sequence ID in the memstore for a particular table 
 	
 	public MemStore(String tblName,String sKey,String eKey)
 	{
@@ -42,6 +42,8 @@ public class MemStore {
 	
 	synchronized void  insertIntoMemStore(PutRequest dataIn,int seqID)
 	{
+		/** lastSeqID was introduced to write partially filled memStores, for unLoadTabe call from HMaster**/
+		lastSeqId = seqID;
 		
 //		System.out.println("recaching insert memstore");
 		System.out.println("Table name in row insert memstoe "+tableName);
@@ -141,8 +143,17 @@ public class MemStore {
 			
 	}
 	
+	/** This is needed when, an unloadRegion call was made by HMAster to a particular region server
+	 * the chosen table's memstore which may be partially filled, has to be written to HFile
+	 * For this we needed the latest sequence ID which is common to all tables at the region server level
+	 * we have passed it till the memstore level
+	 */
+	public synchronized void writePartialMemstoreToHFile()
+	{
+		writeToHFileRecovery(lastSeqId);
+	}
 	
-	/* create a hfile when recovery is done */
+	/** create a hfile when recovery is done **/
 	public synchronized void writeToHFileRecovery(int seqID)
 	{
 		tempStore = new TreeMap<String, TreeMap<String, TreeMap<String, List<Cell> > > >(memStore);
@@ -153,6 +164,7 @@ public class MemStore {
 		memStoreSize = 0;
 	}
 	
+	/** This write to HFile method is called when a normal sequence of put is called **/
 	private synchronized void writeToHFile(int seqID) {
 		// TODO Auto-generated method stub
 			WriteHFiles myObj = new WriteHFiles(tempStore,getTimeStamp(),seqID);
