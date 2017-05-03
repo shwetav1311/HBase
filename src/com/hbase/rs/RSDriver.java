@@ -634,6 +634,9 @@ public class RSDriver implements IRegionServer {
 		
 		String tableName = loadReq.getTableName();
 		
+		System.out.println("Table Name in unload "+tableName);
+		System.out.println("ID is "+id);
+		
 		regionMap.get(tableName).get(0).memStore.writePartialMemstoreToHFile(); //get(0) one region per table		
 		/**remove the entry for this particular table after writing the HFile for it **/
 		regionMap.remove(tableName);

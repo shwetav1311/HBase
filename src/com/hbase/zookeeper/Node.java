@@ -7,12 +7,14 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.Map.Entry;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -53,6 +55,8 @@ public class Node implements Runnable {
 //		
 //		tableList.add(tableName);
 //	}
+	
+	private boolean triggerFlag=true;
 	
 	public static List<String > getTableList()
 	{
@@ -149,7 +153,9 @@ public class Node implements Runnable {
 			leaderElection();
 			
 			if(leader==1)
+			{
 				allocateTableOnStart();
+			}
 			
 			
 		} catch (KeeperException | InterruptedException e) {
@@ -210,6 +216,8 @@ public class Node implements Runnable {
 			zoo.getChildren(ZookeeperConstants.HBASE_META,new MetaWatcher());
 			zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE, true);
 			
+			//if i am the leader call load balancer 
+			runLoadBalancer();
 			
 			
 			
@@ -334,7 +342,7 @@ public class Node implements Runnable {
 		@Override
 		public void process(WatchedEvent event) {
 
-			if (leader == 1) {
+			if (leader == 1 && getNoTriggerFlag()==true) {
 
 				System.out.println("Event received:   " + event.getType());
 				getDifferenceAndAllocateTables();
@@ -344,6 +352,16 @@ public class Node implements Runnable {
 		//
 	}
 	
+	
+	private synchronized void setNoTriggerFlag(boolean val)
+	{
+		triggerFlag=val;
+	}
+	
+	private synchronized boolean getNoTriggerFlag()
+	{
+		return triggerFlag;
+	}
 	
 	
 	public void assignTableAfterFailure(String tableName) throws KeeperException, InterruptedException {
@@ -538,6 +556,276 @@ public class Node implements Runnable {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	/* get the tables for the ip:port passed */
+	public List<String> getTablesForRegion(String str) throws KeeperException, InterruptedException
+	{
+		List<String> Region_tble=new ArrayList<String>();
+		List<String> tables = null ;
+		byte[] bs = null;
+		
+		try {
+			tables = Node.zoo.getChildren(ZookeeperConstants.HBASE_META,false);
+		} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for (int i = 0; i < tables.size(); i++) {
+			String tble=tables.get(i);
+			tble="/"+tble;
+			bs=zoo.getData(ZookeeperConstants.HBASE_META+tble,false,null);
+			String res = new String(bs);
+			if(res.equals(str))
+				Region_tble.add(tble);
+			
+		}
+		
+		System.out.println("Table add, "+Region_tble);
+		return Region_tble;
+		
+	}
+	
+	/* get average number of tables in each region */
+	public int getAvg( HashMap<String,List<String>> Map)
+	{
+		int avg=0;
+		int count=0;
+		for(Entry<String, List<String>> entry : Map.entrySet()){
+			avg+=entry.getValue().size();
+			count++;
+          
+        }
+		
+        avg=avg/count;
+		
+		return avg;
+		
+	}
+	
+	/* assign table to region */
+	public int loadRegion(String first_q,String tble){
+		
+		StringTokenizer st = new StringTokenizer(first_q,":"); 
+		String Assignedreg_ip=st.nextToken();
+		String Assignedreg_port=st.nextToken();
+		
+		IRegionServer rsStub=null;
+		Registry registry = null;
+		
+		int result=1;
+		try {
+			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		}
+		try {
+			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+			rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER);
+			
+			LoadRegionRequest.Builder reqObj = LoadRegionRequest.newBuilder();
+			reqObj.setTableName(tble);
+			reqObj.setIsCreate(false);
+			
+			byte[] responseArray = rsStub.loadRegion(reqObj.build().toByteArray());
+			
+			LoadRegionResponse respObj = null;
+			
+			try {
+				respObj = LoadRegionResponse.parseFrom(responseArray);
+			} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			result = respObj.getStatus();
+		}
+		catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			result = HDFSConstants.STATUS_FAILED;
+			
+			
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			result = HDFSConstants.STATUS_FAILED;
+		}
+		
+		return result;
+	
+	}
+	
+public int unLoadRegion(String first_q,String tble){
+		
+		StringTokenizer st = new StringTokenizer(first_q,":"); 
+		String Assignedreg_ip=st.nextToken();
+		String Assignedreg_port=st.nextToken();
+		
+		IRegionServer rsStub=null;
+		Registry registry = null;
+		
+		int result=1;
+		try {
+			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		
+		}
+		try {
+			registry = LocateRegistry.getRegistry(Assignedreg_ip,Integer.parseInt(Assignedreg_port));
+			rsStub = (IRegionServer) registry.lookup(HBaseConstants.RS_DRIVER);
+			
+			LoadRegionRequest.Builder reqObj = LoadRegionRequest.newBuilder();
+			reqObj.setTableName(tble);
+			reqObj.setIsCreate(false);
+			
+			byte[] responseArray = rsStub.unloadRegion(reqObj.build().toByteArray());
+			
+			LoadRegionResponse respObj = null;
+			
+			try {
+				respObj = LoadRegionResponse.parseFrom(responseArray);
+			} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			result = respObj.getStatus();
+		}
+		catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			result = HDFSConstants.STATUS_FAILED;
+			
+			
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			result = HDFSConstants.STATUS_FAILED;
+		}
+		
+		return result;
+	
+	}
+	
+	
+	public void loadBalancer() throws InterruptedException, KeeperException
+	{
+		byte[] bs = null;
+//		  List<String> list = new ArrayList<>();
+		  int avg;
+		  
+		  System.out.println("INside load -----------");
+		 HashMap<String,List<String>> Map=new HashMap<String,List<String>>();  
+		try {
+			List<String> Regions = Node.zoo.getChildren(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE,false);
+			for (int i = 0; i < Regions.size(); i++) {
+				List<String> list = new ArrayList<>();
+				String RS=Regions.get(i);
+				RS="/"+RS;
+				bs=zoo.getData(ZookeeperConstants.LEADER_ELECTION_ROOT_NODE+RS,false,null);
+				String str = new String(bs);
+				list=getTablesForRegion(str);
+				Map.put(str,list);
+				
+				
+			}
+			
+			System.out.println("Final Map "+Map);
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		avg=getAvg(Map);
+		
+		 List<String> q = new ArrayList<>();///to put all lesser than avg in this queue,and assing greter than avg to this queue
+		 
+		
+		for(Entry<String, List<String>> entry : Map.entrySet()){
+			if(entry.getValue().size()<avg)
+			{
+				q.add(entry.getKey());
+				
+			}
+			
+		}
+		String first_q;
+		for(Entry<String, List<String>> entry : Map.entrySet()){
+			
+			if(entry.getValue().size()>avg)
+			{
+				int to_assign=entry.getValue().size()-avg;
+				while(to_assign>0)
+				{
+					String tble=entry.getValue().get(0);
+					tble = tble.substring(1);
+					entry.getValue().remove(0);
+					String ipPort = entry.getKey();
+					unLoadRegion(ipPort,tble);
+					setNoTriggerFlag(false);
+					zoo.delete(ZookeeperConstants.HBASE_META+"/"+tble,-1);
+					for(int i=0;i<q.size();i++)
+					{
+						first_q=q.get(i);
+						if(Map.get(first_q).size()<avg)
+							{
+							loadRegion(first_q,tble);
+							
+						    Map.get(first_q).add(tble);
+							}
+					
+						
+					}
+					setNoTriggerFlag(true);
+					
+					to_assign--;
+				}
+				
+			}
+		}
+		
+	}
+	
+	
+	private void runLoadBalancer()
+	{
+		
+		 new Thread(new Runnable() {
+             @Override
+             public void run() {
+            	 while(true)
+         		{
+            		 System.out.println("Load Balancer called");
+            		 
+            		 try {
+         				Thread.sleep(15000);
+         			} catch (InterruptedException e) {
+         				// TODO Auto-generated catch block
+         				e.printStackTrace();
+         			}
+         			
+         			
+         			
+         			try {
+         				loadBalancer();
+         			} catch (InterruptedException | KeeperException e) {
+         				// TODO Auto-generated catch block
+         				e.printStackTrace();
+         			}
+         		}
+             }
+		
+		
+	}).start();
 	}
 		
 		
