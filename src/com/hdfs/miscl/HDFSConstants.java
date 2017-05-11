@@ -24,6 +24,6 @@ public final class HDFSConstants {
 	public static final long BLOCK_REPORT_FREQ = 5000;
 	public static final long HEART_BEAT_FREQ = 5000;	
 
-//	public static final String CONNECTIVITY = "eth0"; //eth0 if you use a cable
-	public static final String CONNECTIVITY = "wlan0"; //eth0 if you use a cable
+	public static final String CONNECTIVITY = "eth0"; //eth0 if you use a cable
+//	public static final String CONNECTIVITY = "wlan0"; //eth0 if you use a cable
 }

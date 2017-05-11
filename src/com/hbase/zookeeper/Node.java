@@ -169,7 +169,7 @@ public class Node implements Runnable {
 		
 		
 		try {
-			new Thread().sleep(10000);
+			new Thread().sleep(20000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -342,17 +342,28 @@ public class Node implements Runnable {
 		@Override
 		public void process(WatchedEvent event) {
 
+			System.out.println("Trigger flag" + getNoTriggerFlag());
+			
 			if (leader == 1 && getNoTriggerFlag()==true) {
 
 				System.out.println("Event received:   " + event.getType());
 				getDifferenceAndAllocateTables();
 			} // end-if
+			try {
+
+				zoo.getChildren(ZookeeperConstants.HBASE_META, new MetaWatcher());
+
+			} catch (KeeperException | InterruptedException e) {
+
+				e.printStackTrace();
+			}
 
 		}
 		//
 	}
 	
-	
+	/** If trigger value is false then load balancing is happening 
+	 * ignore all other delete events **/
 	private synchronized void setNoTriggerFlag(boolean val)
 	{
 		triggerFlag=val;
@@ -547,14 +558,7 @@ public class Node implements Runnable {
 			e.printStackTrace();
 		}
 
-		try {
-
-			zoo.getChildren(ZookeeperConstants.HBASE_META, new MetaWatcher());
-
-		} catch (KeeperException | InterruptedException e) {
-
-			e.printStackTrace();
-		}
+		
 		
 	}
 	
@@ -589,7 +593,7 @@ public class Node implements Runnable {
 	/* get average number of tables in each region */
 	public int getAvg( HashMap<String,List<String>> Map)
 	{
-		int avg=0;
+		float avg=0;
 		int count=0;
 		for(Entry<String, List<String>> entry : Map.entrySet()){
 			avg+=entry.getValue().size();
@@ -599,7 +603,7 @@ public class Node implements Runnable {
 		
         avg=avg/count;
 		
-		return avg;
+		return (int) Math.ceil(avg);
 		
 	}
 	
@@ -746,14 +750,15 @@ public int unLoadRegion(String first_q,String tble){
 		
 		
 		avg=getAvg(Map);
+		System.out.println("Average "+avg);
 		
-		 List<String> q = new ArrayList<>();///to put all lesser than avg in this queue,and assing greter than avg to this queue
+		 List<String> lessThanAvg = new ArrayList<>();///to put all lesser than avg in this queue,and assing greter than avg to this queue
 		 
 		
 		for(Entry<String, List<String>> entry : Map.entrySet()){
 			if(entry.getValue().size()<avg)
 			{
-				q.add(entry.getKey());
+				lessThanAvg.add(entry.getKey());
 				
 			}
 			
@@ -761,32 +766,36 @@ public int unLoadRegion(String first_q,String tble){
 		String first_q;
 		for(Entry<String, List<String>> entry : Map.entrySet()){
 			
-			if(entry.getValue().size()>avg)
-			{
-				int to_assign=entry.getValue().size()-avg;
-				while(to_assign>0)
-				{
-					String tble=entry.getValue().get(0);
+			if (entry.getValue().size() > avg) {
+				int to_assign = entry.getValue().size() - avg;
+				while (to_assign > 0) {
+					System.out.println("Before MAP : "+Map);
+
+					String tble = entry.getValue().get(0);
 					tble = tble.substring(1);
-					entry.getValue().remove(0);
+					
 					String ipPort = entry.getKey();
-					unLoadRegion(ipPort,tble);
-					setNoTriggerFlag(false);
-					zoo.delete(ZookeeperConstants.HBASE_META+"/"+tble,-1);
-					for(int i=0;i<q.size();i++)
-					{
-						first_q=q.get(i);
-						if(Map.get(first_q).size()<avg)
-							{
-							loadRegion(first_q,tble);
+
+					for (int i = 0; i < lessThanAvg.size(); i++) {
+						first_q = lessThanAvg.get(i);
+						if (Map.get(first_q).size() <= avg) {
 							
-						    Map.get(first_q).add(tble);
-							}
-					
-						
+							entry.getValue().remove(0);
+							unLoadRegion(ipPort, tble);
+
+							setNoTriggerFlag(false);
+							/** point of concern if RS fails here **/
+							zoo.delete(ZookeeperConstants.HBASE_META + "/" + tble, -1);
+							loadRegion(first_q, tble);
+							
+							Map.get(first_q).add("/"+tble);
+							setNoTriggerFlag(true);
+							System.out.println("after MAP : "+Map);
+							break;
+						}
+
 					}
-					setNoTriggerFlag(true);
-					
+
 					to_assign--;
 				}
 				
@@ -807,7 +816,7 @@ public int unLoadRegion(String first_q,String tble){
             		 System.out.println("Load Balancer called");
             		 
             		 try {
-         				Thread.sleep(15000);
+         				Thread.sleep(ZookeeperConstants.LOAD_BALANCE_DURATION);
          			} catch (InterruptedException e) {
          				// TODO Auto-generated catch block
          				e.printStackTrace();

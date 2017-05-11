@@ -10,4 +10,5 @@ public final class ZookeeperConstants {
 	public static final String HBASE = "/hbase";
 	public static final String HBASE_MASTER = "/hbase/master";
 	public static final String HBASE_WAL = "/hbase/wal"; // persistent node
+	public static final Integer LOAD_BALANCE_DURATION = 60000; //1 min 
 }

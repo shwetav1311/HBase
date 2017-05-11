@@ -105,9 +105,9 @@ public class ClientDriverTestGet extends Thread{
 
 		}
 		long endTime = System.currentTimeMillis();
-		System.out.println("Total Time taken : " + (endTime - startTime) / 1000);
-		System.out.println("ID: "+id);
-		System.out.println("Success "+count);
+//		System.out.println("Total Time taken : " + (endTime - startTime) / 1000);
+//		System.out.println("ID: "+id);
+//		System.out.println("Success "+count);
 	}
 	
 	
@@ -424,7 +424,7 @@ private  IRegionServer getRegionStub(String tableName) throws KeeperException, I
 						System.out.println("RowKey"+rowkey);
 					}else
 					{
-//						System.out.print(getResponse.getColFamily(0));
+						System.out.print(getResponse.getColFamily(0));
 					}
 					
 					
@@ -444,7 +444,10 @@ private  IRegionServer getRegionStub(String tableName) throws KeeperException, I
 				System.out.println("Exception: "+e.getMessage());
 				
 				
-			} 
+			} catch(Exception e)
+			{
+				e.printStackTrace();
+			}
 			try {
 				new Thread().sleep(1000);
 			} catch (InterruptedException e) {
@@ -452,7 +455,7 @@ private  IRegionServer getRegionStub(String tableName) throws KeeperException, I
 				e.printStackTrace();
 			}
 			
-			
+			cnt++;
 		}
 		
 		

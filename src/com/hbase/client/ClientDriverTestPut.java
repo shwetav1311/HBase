@@ -127,9 +127,9 @@ public class ClientDriverTestPut extends Thread{
 		colFamily.add("National:Politician");
 		
 		colValues = new ArrayList<>();
-		colValues.add(id.toString()+"_"+"Sachin");
-		colValues.add(id.toString()+"_"+"Amitabh");
-		colValues.add(id.toString()+"_"+"NarendraModi");
+		colValues.add("Sachin");
+		colValues.add("Amitabh");
+		colValues.add("NarendraModi");
 		
 		ArrayList<ArrayList<String>> multipleTables = new ArrayList<ArrayList<String>>();
 		
@@ -141,7 +141,7 @@ public class ClientDriverTestPut extends Thread{
 			oneTable.add(tableNames.get(i));
 			oneTable.add("1"); //row key
 			oneTable.add(colFamily.get(i));
-			oneTable.add(colValues.get(i)+i+"");
+			oneTable.add(colValues.get(i));
 			
 			multipleTables.add(oneTable);
 		}
@@ -252,7 +252,7 @@ public class ClientDriverTestPut extends Thread{
 				column.setColName(col[1]);
 				
 				Cell.Builder cell = Cell.newBuilder();
-				cell.setColValue(value);
+				cell.setColValue(value+" #value# "+rowkey);
 				cell.setTimestamp(new Date().getTime());
 				
 				column.addCells(cell.build());
